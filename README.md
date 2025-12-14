@@ -22,4 +22,9 @@ Icons are from the VSCord project.
 
 ## Building
 
-CMake
+The library is built with Xmake.
+Before anything, ensure the DiscordRPC submodule (and it's own rapidjson submodule) are fetched:
+
+`git submodule update --init --recursive`
+
+You can then build with `xmake`

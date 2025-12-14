@@ -4,6 +4,7 @@ add_rules("mode.debug", "mode.release")
 package("DiscordRPC")
     add_deps("cmake")
     set_sourcedir(path.join(os.scriptdir(), "discord-rpc"))
+	-- add_urls('https://github.com/harmonytf/discord-rpc.git')
     on_install(function (package)
         local configs = {}
         table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
@@ -15,7 +16,7 @@ package("DiscordRPC")
     end)
 package_end()
 
-add_requires('DiscordRPC')
+add_requires('DiscordRPC', {configs = {shared = false}})
 add_requires('lua')
 
 target('ta_drpc')
