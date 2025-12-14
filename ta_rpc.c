@@ -323,14 +323,13 @@ static void gameLoop()
 }
 
 static int initDiscord(lua_State *L) {
-
-
+    return 0;
 }
 
-luaL_Reg
+/*luaL_Reg*/
 
 static int luaopen_ta_rpc(lua_State *L) {
-
+    return 0;
 }
 
 
