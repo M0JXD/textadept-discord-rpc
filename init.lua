@@ -38,7 +38,11 @@ function M.update()
 	-- Update details
 	M.presence.lexer = buffer:get_lexer()
 	if (buffer.filename) then
-		M.presence.filename = buffer.filename:match('[^/\\]+$')
+		local their = ''
+		if (buffer.filename:match('.textadept/init.lua')) then
+			their = 'their Textadept ' -- Call em out
+		end
+		M.presence.filename = their .. buffer.filename:match('[^/\\]+$')
 	end
 	if (io.get_project_root()) then
 		M.presence.project_name = io.get_project_root():match('[^/\\]+$')
