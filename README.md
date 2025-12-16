@@ -30,8 +30,9 @@ The library is built with [Xmake](https://xmake.io/). Before anything, after clo
 
 `git submodule update --init --recursive`
 
-You can then build with `xmake`.
-Search through the ./build/platform/arch/mode to the folder that contains the library and Lua file.
+You can then issue the build with `xmake`. Xmake will automatically build and use the underlying library.
+Search through the ./build/platform/arch/mode to the folder that contains the library and Lua file, which can be copied into the module folder.
+There is an install rule for `xmake i` that will install into `~/.textadept/modules/discord_rpc`
 
 ## Assets
 
@@ -45,3 +46,9 @@ The icons are from the VSCord project.
 
 - The icons are from the VSCord project. Thank you!
 - Mitchell for Textadept
+
+## TODO
+
+- Complete POC
+- Add LDoc and unit tests to align this module quality wise to Textadept's official ones
+- Setup Github Actions build
