@@ -5,6 +5,10 @@ package("DiscordRPC")
 	add_deps("cmake")
 	set_sourcedir(path.join(os.scriptdir(), "discord-rpc"))
 	-- add_urls('https://github.com/harmonytf/discord-rpc.git')
+	-- FIX: Add the required system library for Windows Registry functions
+    if (is_plat('windows')) then
+        add_syslinks("Advapi32")
+    end
 	on_install(function (package)
 		local configs = {}
 		table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
@@ -34,6 +38,6 @@ target('discordrpc')
 	end
 
 	on_install(function (target)
-		-- TODO: is this right for Windows
+		-- TODO: Fix for Windows
 		os.cp(target:targetdir()..'/**', '~/.textadept/modules/discord_rpc')
 	end)
