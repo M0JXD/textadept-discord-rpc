@@ -34,6 +34,6 @@ target('discordrpc')
 	end
 
 	on_install(function (target)
-		-- TODO: is this right still for Windows
+		-- TODO: is this right for Windows
 		os.cp(target:targetdir()..'/**', '~/.textadept/modules/discord_rpc')
 	end)

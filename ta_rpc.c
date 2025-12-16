@@ -29,18 +29,23 @@
 static const char* APPLICATION_ID = "1446884816174841971";
 static int64_t startTime;
 
+static struct TAPresenceData {
+    char userdetails[256];
+    char disconnectedDetails[256];
+    char errorDetails[256];
+} taPresenceData = {NULL, NULL, NULL};
+
 /* ============================== DISCORD HANDLERS ============================== */
 
 /* TODO: Inform Textadept on the status of these */
 static void handleDiscordReady(const DiscordUser* connectedUser) {
-    char buffer[256];
     if (!connectedUser->discriminator[0] || strcmp(connectedUser->discriminator, "0") == 0) {
-        printf("\nDiscord: connected to user @%s (%s) - %s\n",
+        sprintf(taPresenceData.userdetails ,"Connected to user @%s (%s) - %s",
                connectedUser->username,
                connectedUser->globalName,
                connectedUser->userId);
     } else {
-        printf("\nDiscord: connected to user %s#%s (%s) - %s\n",
+        sprintf(taPresenceData.userdetails, "Connected to user %s#%s (%s) - %s",
                connectedUser->username,
                connectedUser->discriminator,
                connectedUser->globalName,
@@ -49,11 +54,11 @@ static void handleDiscordReady(const DiscordUser* connectedUser) {
 }
 
 static void handleDiscordDisconnected(int errcode, const char* message) {
-    printf("\nDiscord: disconnected (%d: %s)\n", errcode, message);
+    sprintf(taPresenceData.disconnectedDetails, "Disconnected (%d: %s)", errcode, message);
 }
 
 static void handleDiscordError(int errcode, const char* message) {
-    printf("\nDiscord: error (%d: %s)\n", errcode, message);
+    sprintf(taPresenceData.errorDetails, "Error (%d: %s)", errcode, message);
 }
 
 static void populateHandlers(DiscordEventHandlers* handlers) {
@@ -73,29 +78,25 @@ static void populateHandlers(DiscordEventHandlers* handlers) {
 /* ============================== LUA API ============================== */
 
 TA_DRPC static int initDiscord(lua_State *L) {
-    /* Get if privacy mode is set */
-    /* Ideally get a callback function we can call that will emit a Textadept event? Is that even possible? */
-
     DiscordEventHandlers handlers;
     startTime = time(0);
     populateHandlers(&handlers);
     Discord_Initialize(APPLICATION_ID, &handlers, 1, NULL);
-
     Discord_ClearPresence();
-
     return 0;
 }
 
 TA_DRPC static int updateDiscordPresence(lua_State *L) {
     /*TODO: This should pass:
         - If we should send presence
+        - If we want to be private
         - Textadept version (CURSES, GTK on Linux)
         - The file's name, with extension (do a special check for preferences init.lua)
         - The current lexer?
         - If the file is modified but unsaved (editing vs viewing)
         - Are we calling due to a run/compile command?
         - Are we calling due to idle timeout?
-        - The Project folder name
+        - The Project folder name?
 
         - IDEAS:
         - Amount of errors (LSP or from compile/run)
@@ -105,21 +106,14 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
 
     bool send_presence = true;
     bool private = false;
-    char ta_type = 'Q'; /* 'Q' = Qt, 'G' = GTK 'C' = CURSES */
-
+    char version = 'Q'; /* 'Q' = Qt, 'G' = GTK 'C' = CURSES */
     bool idle     = false;
     bool modified = false;
     char runner = 'N';  /* 'N' = No, 'R' = Running, 'C' = Compiling, 'B' = Building, 'D' = Debugging? */
-    char filename[128] = "init.lua";  /* Will be init.lua.T for preferences */
-    char lexer[32]     = "lua";
+    char filename[128] = "init.lua";  /* Will be init.lua.T for preferences? */
+    char lexer[32]     = "lua";  /* TODO: Special treatment for the likes of Arduino? */
     char project_name[128]  = "textadept-discord-rpc";
     int errors = 0;
-
-    /* If not to send then clear and quit early */
-    if (!send_presence) {
-        Discord_ClearPresence();
-        return 0;
-    }
 
     /* ===== Calculate Presence ===== */
 
@@ -128,11 +122,18 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
     char smallImageText[128];
     //char largeImageText[128];
 
-    sprintf(state, "Editing a %s file.", lexer);
-    sprintf(details, "Project folder: %s", project_name);
+    sprintf(details, "Currently %s", idle ? "idle." : modified ? "editing." : runner != 'N' ? "executing a task." : "viewing.");
+    if (private) {
+        sprintf(state, "Working on %s", filename);
+    } else {
+        sprintf(state, "Editing a %s file.", lexer);
+        char buffer[64]; sprintf(buffer, " Project folder: %s", project_name);
+        strcat(details, buffer);
+    }
+
     sprintf(smallImageText, "Textadept %s",
-        ta_type == 'Q' ? "Qt" :
-        ta_type == 'C' ? "GTK" : "curses");
+        version == 'Q' ? "Qt" :
+        version == 'C' ? "GTK" : "curses");
     //sprintf(largeImageText, "%s", lexer);
 
     /* ===== Send Presence ===== */
@@ -151,11 +152,22 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
     discordPresence.smallImageText = smallImageText;
     discordPresence.largeImageText = lexer;
 
-    Discord_UpdatePresence(&discordPresence);
+    if (send_presence) {
+        Discord_UpdatePresence(&discordPresence);
+    } else {
+        Discord_ClearPresence();
+    }
+
 #ifdef DISCORD_DISABLE_IO_THREAD
     Discord_UpdateConnection();
 #endif
     Discord_RunCallbacks();
+    /* TODO: Pass back the details from running the callbacks */
+
+    /* Now the data is passed forward, clear them */
+    taPresenceData.userdetails[0] = '\0';
+    taPresenceData.disconnectedDetails[0] = '\0';
+    taPresenceData.errorDetails[0] = '\0';
     return 0;
 }
 
