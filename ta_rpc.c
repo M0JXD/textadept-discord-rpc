@@ -51,14 +51,17 @@ static void handleDiscordReady(const DiscordUser* connectedUser) {
                connectedUser->globalName,
                connectedUser->userId);
     }
+    puts(taPresenceData.userdetails);
 }
 
 static void handleDiscordDisconnected(int errcode, const char* message) {
     sprintf(taPresenceData.disconnectedDetails, "Disconnected (%d: %s)", errcode, message);
+    puts(taPresenceData.disconnectedDetails);
 }
 
 static void handleDiscordError(int errcode, const char* message) {
     sprintf(taPresenceData.errorDetails, "Error (%d: %s)", errcode, message);
+    puts(taPresenceData.errorDetails);
 }
 
 static void populateHandlers(DiscordEventHandlers* handlers) {
@@ -83,58 +86,100 @@ TA_DRPC static int initDiscord(lua_State *L) {
     populateHandlers(&handlers);
     Discord_Initialize(APPLICATION_ID, &handlers, 1, NULL);
     Discord_ClearPresence();
+#ifdef DISCORD_DISABLE_IO_THREAD
+    Discord_UpdateConnection();
+#endif
+    Discord_RunCallbacks();
     return 0;
 }
 
 TA_DRPC static int updateDiscordPresence(lua_State *L) {
-    /*TODO: This should pass:
-        - If we should send presence
-        - If we want to be private
-        - Textadept version (CURSES, GTK on Linux)
-        - The file's name, with extension (do a special check for preferences init.lua)
-        - The current lexer?
-        - If the file is modified but unsaved (editing vs viewing)
-        - Are we calling due to a run/compile command?
-        - Are we calling due to idle timeout?
-        - The Project folder name?
+    /* IDEAS
+      - Amount of errors (LSP or from compile/run)
+      - Time since most recent commit?
+      - Git branch name? */
 
-        - IDEAS:
-        - Amount of errors (LSP or from compile/run)
-        - Time since most recent commit?
-        - Git branch name?
-    */
+    luaL_checktype(L, 1, LUA_TTABLE);
 
-    bool send_presence = true;
-    bool private = false;
-    char version = 'Q'; /* 'Q' = Qt, 'G' = GTK 'C' = CURSES */
-    bool idle     = false;
-    bool modified = false;
-    char runner = 'N';  /* 'N' = No, 'R' = Running, 'C' = Compiling, 'B' = Building, 'D' = Debugging? */
-    char filename[128] = "init.lua";  /* Will be init.lua.T for preferences? */
-    char lexer[32]     = "lua";  /* TODO: Special treatment for the likes of Arduino? */
-    char project_name[128]  = "textadept-discord-rpc";
-    int errors = 0;
+    /* If we should send presence */
+    lua_getfield(L, -1, "send_presence");
+    bool send_presence = lua_toboolean(L, -1);
+
+    /* Private mode that doesn't display file names/project folder */
+    lua_getfield(L, -2, "private");
+    bool private = lua_toboolean(L, -1);
+
+    /* Qt, GTK or CURSES version */
+    lua_getfield(L, -3, "version");
+    const char *version = lua_tostring(L, -1);
+
+    /* Is user idling? */
+    lua_getfield(L, -4, "idle");
+    bool idle = lua_toboolean(L, -1);
+
+    /* Is the current buffer unsaved? */
+    lua_getfield(L, -5, "modified");
+    bool modified = lua_toboolean(L, -1);
+
+    /* Action being run */
+    lua_getfield(L, -6, "runner");
+    const char *runner = lua_tostring(L, -1);  /* 'N' = No, 'E' = Executing, 'R' = Running, 'C' = Compiling, 'B' = Building, 'D' = Debugging? */
+
+    /* Filename of the current buffer */
+    lua_getfield(L, -7, "filename");
+    const char *filename = lua_tostring(L, -1);  /* Will be init.lua.T for preferences? */
+
+    /* Lexer applied to current buffer TODO: This doesn't handle edge cases like arduino, would also be nice to check for preferences init.lua */
+    lua_getfield(L, -8, "lexer");
+    const char *lexer = lua_tostring(L, -1);  /* TODO: Special treatment for the likes of Arduino? */
+
+    /* The project folder name */
+    lua_getfield(L, -9, "project_name");
+    const char *project_name = lua_tostring(L, -1);  /* NA will be shown if Textadept can't detect a project */
+
+    /* Amount of LSP/Compile etc. errors */
+    lua_getfield(L, -10, "errors");
+    int errors = lua_tointeger(L, -1);
 
     /* ===== Calculate Presence ===== */
 
     char state[128];
     char details[128];
     char smallImageText[128];
-    //char largeImageText[128];
+    char largeImageText[128];
 
-    sprintf(details, "Currently %s", idle ? "idle." : modified ? "editing." : runner != 'N' ? "executing a task." : "viewing.");
-    if (private) {
-        sprintf(state, "Working on %s", filename);
-    } else {
-        sprintf(state, "Editing a %s file.", lexer);
-        char buffer[64]; sprintf(buffer, " Project folder: %s", project_name);
-        strcat(details, buffer);
+    char *runner_str = NULL;
+    switch (runner[0]) {
+        case 'E':
+            runner_str = "executing";
+            break;
+        case 'R':
+            runner_str = "running";
+            break;
+        case 'C':
+            runner_str = "compiling";
+            break;
+        case 'B':
+            runner_str = "building";
+            break;
+        case 'D':
+            runner_str = "debugging";
+            break;
     }
 
-    sprintf(smallImageText, "Textadept %s",
-        version == 'Q' ? "Qt" :
-        version == 'C' ? "GTK" : "curses");
-    //sprintf(largeImageText, "%s", lexer);
+    if (private) {
+        sprintf(state, "Currently %s a %s file.", modified ? "editing." : runner[0] != 'N' ? strcat(runner_str, " a task.") : "viewing.", lexer);
+        sprintf(details, "Errors: %d", errors);
+    } else {
+        sprintf(state, "Currently %s %s", modified ? "editing" : runner[0] != 'N' ? runner_str : "viewing", filename);
+        sprintf(details, "Project folder: %s, Errors: %d", project_name, errors);
+    }
+
+    if (idle) {
+        strcpy(state, "Currently idle.");
+    }
+
+    sprintf(smallImageText, "Textadept (%s)", version);
 
     /* ===== Send Presence ===== */
 
@@ -148,9 +193,12 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
 #else
     discordPresence.smallImageKey = "textadept";
 #endif
-    discordPresence.largeImageKey = lexer;
     discordPresence.smallImageText = smallImageText;
-    discordPresence.largeImageText = lexer;
+    discordPresence.largeImageKey = lexer;
+    //lexer[0] -= 32;  /* Capitalise first letter */
+    sprintf(largeImageText, "Editing a %c%s file.", lexer[0] - 32, &lexer[1]);
+    discordPresence.largeImageText = largeImageText;
+    //lexer[0] += 32;  /* Uncapitalise first letter */
 
     if (send_presence) {
         Discord_UpdatePresence(&discordPresence);
@@ -162,13 +210,15 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
     Discord_UpdateConnection();
 #endif
     Discord_RunCallbacks();
-    /* TODO: Pass back the details from running the callbacks */
 
-    /* Now the data is passed forward, clear them */
-    taPresenceData.userdetails[0] = '\0';
-    taPresenceData.disconnectedDetails[0] = '\0';
-    taPresenceData.errorDetails[0] = '\0';
-    return 0;
+    lua_pushstring(L, taPresenceData.userdetails);
+    lua_pushstring(L, taPresenceData.disconnectedDetails);
+    lua_pushstring(L, taPresenceData.errorDetails);
+    /* Now the data is passed forward, clear them? */
+    //taPresenceData.userdetails[0] = '\0';
+    //taPresenceData.disconnectedDetails[0] = '\0';
+    //taPresenceData.errorDetails[0] = '\0';
+    return 3;
 }
 
 TA_DRPC static int closeDiscord(lua_State *L) {

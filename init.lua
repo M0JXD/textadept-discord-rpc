@@ -12,30 +12,69 @@ elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
 end
 M.rpc = require(lib)
 
+local displayed_connected = false
+
 M.stats = {
-	userdetails = nil,
-	disconnectedDetails = nil,
-	errorDetails = nil
+	userdetails = '',
+	disconnectedDetails = '',
+	errorDetails = ''
 }
 
 M.presence = {
 	send_presence = true,
 	private = false,
-	version = QT and 'Q' or GTK and 'G' or CURSES and 'C',
+	version = QT and 'Qt' or GTK and 'GTK' or CURSES and 'curses',
 	idle = false,
 	modified = false,
 	runner = 'N',
-	filename = 'filename', -- buffer.filename:match('[^/\\]+$'),
-	lexer = 'lua', -- buffer:get_lexer(),
-	project_name = 'project',
+	filename = 'Untitled', -- buffer.filename:match('[^/\\]+$'),
+	lexer = 'text', -- buffer:get_lexer(),
+	project_name = 'NA',
 	errors = 0
 }
+
+-- Convenience wrapper that will get current details before calling rpc.update() and update UI
+function M.update()
+	M.presence.lexer = buffer:get_lexer()
+	if (buffer.filename) then
+		M.presence.filename = buffer.filename:match('[^/\\]+$')
+	end
+
+	if (io.get_project_root()) then
+		M.presence.project_name = io.get_project_root():match('[^/\\]+$')
+	else
+		M.presence.project_name = 'NA'
+	end
+
+	M.stats.userdetails, M.stats.disconnectedDetails, M.stats.errorDetails = M.rpc.update(M.presence)
+
+	if M.stats.disconnectedDetails ~= '' then
+		ui.statusbar_text = M.stats.disconnectedDetails
+	elseif M.stats.errorDetails ~= '' then
+		ui.statusbar_text = M.stats.errorDetails
+	end
+
+	if (M.show_connected) then
+		local spacing = CURSES and '  ' or '    '
+		status = M.stats.userdetails ~= '' and '☺' or '☹'
+		ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '..status
+
+		-- Discord is a little slow to respond with it's connected status,
+		-- and without a good way of it emitting a Textadept event in the handler
+		-- This is the best idea I have :(
+		if (status and (displayed_connected == false)) then
+			ui.statusbar_text = M.stats.userdetails
+			displayed_connected = true
+		end
+	end
+
+end
 
 -- Convenience to allow user to 'start' RPC in their init.lua, but actually start RPC once Textadept is fully initialised
 function M.init()
 	events.connect(events.INITIALIZED, function ()
 		M.rpc.init()
-		M.rpc.update()
+		M.update()
 	end)
 
 	-- Attach close handlers to shutdown Discord RPC cleanly
@@ -47,26 +86,7 @@ function M.init()
 	events.connect(events.RESET_BEFORE, function ()
 		M.rpc.close()
 	end)
-end
 
--- Convenience wrapper that will get current details before calling rpc.update() and update UI
-function M.update()
-
-	--buffer:get_lexer()
-
-	--	rpc.update()
-
-	if M.stats.disconnectedDetails then
-		ui.statusbar_text = M.stats.disconnectedDetails
-	elseif M.stats.errorDetails then
-		ui.statusbar_text = M.stats.errorDetails
-	end
-
-	if (M.show_connected) then
-		local spacing = CURSES and '  ' or '    '
-		status = M.stats.userdetails and '☺' or '☹'
-		ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '..status
-	end
 end
 
 -- Connect update to the right events
