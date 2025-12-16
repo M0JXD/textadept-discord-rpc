@@ -5,7 +5,7 @@ package("DiscordRPC")
 	add_deps("cmake")
 	set_sourcedir(path.join(os.scriptdir(), "discord-rpc"))
 	-- add_urls('https://github.com/harmonytf/discord-rpc.git')
-	-- FIX: Add the required system library for Windows Registry functions
+	-- Add the required system library for Windows Registry functions
     if (is_plat('windows')) then
         add_syslinks("Advapi32")
     end
@@ -21,16 +21,22 @@ package("DiscordRPC")
 package_end()
 
 add_requires('DiscordRPC', {configs = {shared = false}})
-add_requires('lua')  -- TODO: Try and get Lua 5.5
 
 target('discordrpc')
 	set_kind('shared')
 	add_files('ta_rpc.c')
-	add_packages('DiscordRPC', 'lua')
+	add_packages('DiscordRPC')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
 	add_configfiles('init.lua', {onlycopy = true})
+	add_includedirs('$(scriptdir)/extern/lua-5.5.0/src')
 
-	if (is_plat('linux')) then
+	if (is_plat('windows')) then
+		-- We need to embed the minimal copy of Lua
+		add_files('extern/*.c')
+		remove_files('extern/*lib.c')
+		add_files('extern/lauxlib.c')
+
+	elseif (is_plat('linux')) then
 		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
 		set_filename('discordrpc.so')
 	elseif (is_plat('macosx')) then
