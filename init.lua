@@ -8,7 +8,7 @@ local lib = 'discord_rpc.discordrpc'
 if OSX then
 	lib = lib .. 'osx'
 elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
-	lib = lib .. 'arm'  -- TODO: Can discord even support this?
+	lib = lib .. 'arm'  -- TODO: Can Discord even support this?
 end
 M.rpc = require(lib)
 
@@ -35,28 +35,31 @@ M.presence = {
 
 -- Convenience wrapper that will get current details before calling rpc.update() and update UI
 function M.update()
+	-- Update details
 	M.presence.lexer = buffer:get_lexer()
 	if (buffer.filename) then
 		M.presence.filename = buffer.filename:match('[^/\\]+$')
 	end
-
 	if (io.get_project_root()) then
 		M.presence.project_name = io.get_project_root():match('[^/\\]+$')
 	else
 		M.presence.project_name = 'NA'
 	end
+	M.presence.modified = buffer.modify
 
+	-- Send away and get the stats
 	M.stats.userdetails, M.stats.disconnectedDetails, M.stats.errorDetails = M.rpc.update(M.presence)
 
-	if M.stats.disconnectedDetails ~= '' then
-		ui.statusbar_text = M.stats.disconnectedDetails
-		M.stats.userdetails = ''
-	elseif M.stats.errorDetails ~= '' then
-		ui.statusbar_text = M.stats.errorDetails
-		M.stats.userdetails = ''
-	end
-
+	-- Show the details
 	if (M.show_connected) then
+		if M.stats.disconnectedDetails ~= '' then
+			ui.statusbar_text = M.stats.disconnectedDetails
+			M.stats.userdetails = ''
+		elseif M.stats.errorDetails ~= '' then
+			ui.statusbar_text = M.stats.errorDetails
+			M.stats.userdetails = ''
+		end
+
 		local spacing = CURSES and '  ' or '    '
 		local status = M.stats.userdetails ~= '' and '☺' or '☹'
 		if (ui.buffer_statusbar_text:match('DRPC') == nil) then
@@ -65,11 +68,11 @@ function M.update()
 	end
 end
 
--- Convenience to allow user to 'start' RPC in their init.lua, but actually start RPC once Textadept is fully initialised
+-- Convenience to allow user to 'start' RPC in their init.lua, but actually starts RPC once Textadept is fully initialised
 function M.init()
 	events.connect(events.INITIALIZED, function ()
 		M.rpc.init()
-		--M.update()
+		M.update()
 	end)
 
 	-- Attach close handlers to shutdown Discord RPC cleanly
@@ -81,20 +84,18 @@ function M.init()
 	events.connect(events.RESET_BEFORE, function ()
 		M.rpc.close()
 	end)
-end
 
--- Connect update to the right events
---events.connect(events.BUFFER_NEW, M.update)
---events.connect(events.BUFFER_AFTER_SWITCH, M.update)
-events.connect(events.UPDATE_UI, function (updated)
-	M.update()
-	-- Discord is a little slow to respond with it's connected status,
-	-- and without a good way of it emitting a Textadept event in the handler
-	-- This is the best idea I have :(
-	if (M.stats.userdetails ~= '' and (displayed_connected == false)) then
-		ui.statusbar_text = M.stats.userdetails
-		displayed_connected = true
-	end
-end)
+	-- Attach updater
+	events.connect(events.UPDATE_UI, function (updated)
+		M.update()
+		-- Discord is a little slow to respond with it's connected status,
+		-- and without a good way of it emitting a Textadept event in the handler
+		-- This is the best idea I have :(
+		if (M.stats.userdetails ~= '' and (displayed_connected == false)) then
+			ui.statusbar_text = M.stats.userdetails
+			displayed_connected = true
+		end
+	end)
+end
 
 return M

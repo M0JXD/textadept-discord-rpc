@@ -168,7 +168,7 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
     }
 
     if (private) {
-        sprintf(state, "Currently %s a %s file.", modified ? "editing." : runner[0] != 'N' ? strcat(runner_str, " a task.") : "viewing.", lexer);
+        sprintf(state, "Currently %s a %s file.", modified ? "editing" : runner[0] != 'N' ? runner_str : "viewing", lexer);
         sprintf(details, "Errors: %d", errors);
     } else {
         sprintf(state, "Currently %s %s", modified ? "editing" : runner[0] != 'N' ? runner_str : "viewing", filename);
