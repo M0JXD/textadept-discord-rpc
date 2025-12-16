@@ -1,90 +1,45 @@
 /* Simple Discord RPC wrapper suitable for Textadept */
 /* Based on the send_presence example */
 
+/* DLL Exports for Windows */
+#ifdef _WIN32
+    #define _CRT_SECURE_NO_WARNINGS /* thanks Microsoft */
+    #ifdef TA_DRPC_EXPORTS
+        #define TA_DRPC __declspec(dllexport)
+    #else
+        #define TA_DRPC __declspec(dllimport)
+    #endif
+#else
+    #define TA_DRPC
+#endif
 
-#define _CRT_SECURE_NO_WARNINGS /* thanks Microsoft */
-
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+#include <stdbool.h>
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
 #include "discord_rpc.h"
 
-static const char* APPLICATION_ID = "345229890980937739";
-static int FrustrationLevel = 0;
-static int64_t StartTime;
-static char SendPresence = 1;
-static char SendButtons = 0;
-static char Debug = 1;
+/* This client_id is tied to a Discord app made on my (M0JXD's) dev account for this project.
+ * If you'd rather have your own ID change it here.
+ * I have put this in the C code to force end users to recompile, as a different ID will not have the assets.
+ */
+static const char* APPLICATION_ID = "1446884816174841971";
+static int64_t startTime;
 
-static int prompt(char* line, size_t size)
-{
-    int res;
-    char* nl;
-    printf("\n> ");
-    fflush(stdout);
-    res = fgets(line, (int)size, stdin) ? 1 : 0;
-    line[size - 1] = 0;
-    nl = strchr(line, '\n');
-    if (nl) {
-        *nl = 0;
-    }
-    return res;
-}
+/* ============================== DISCORD HANDLERS ============================== */
 
-static void updateDiscordPresence()
-{
-    if (SendPresence) {
-        char buffer[256];
-        DiscordRichPresence discordPresence;
-        memset(&discordPresence, 0, sizeof(discordPresence));
-        discordPresence.state = "West of House";
-        sprintf(buffer, "Frustration level: %d", FrustrationLevel);
-        discordPresence.details = buffer;
-        discordPresence.startTimestamp = StartTime;
-        discordPresence.endTimestamp = time(0) + 5 * 60;
-        discordPresence.largeImageKey = "canary-large";
-        discordPresence.smallImageKey = "ptb-small";
-        discordPresence.partyId = "party1234";
-        discordPresence.partySize = 1;
-        discordPresence.partyMax = 6;
-        discordPresence.partyPrivacy = DISCORD_PARTY_PUBLIC;
-        discordPresence.matchSecret = "xyzzy";
-        discordPresence.joinSecret = "join";
-        discordPresence.spectateSecret = "look";
-        discordPresence.instance = 0;
-
-        DiscordButton buttons[] = {
-          {.label = "Test", .url = "https://example.com"},
-          {.label = "Test 2", .url = "https://discord.gg/fortnite"},
-          {0, 0},
-        };
-
-        if (SendButtons) {
-            discordPresence.buttons = buttons;
-        }
-
-        Discord_UpdatePresence(&discordPresence);
-    }
-    else {
-        Discord_ClearPresence();
-    }
-}
-
-static void handleDiscordReady(const DiscordUser* connectedUser)
-{
+/* TODO: Inform Textadept on the status of these */
+static void handleDiscordReady(const DiscordUser* connectedUser) {
+    char buffer[256];
     if (!connectedUser->discriminator[0] || strcmp(connectedUser->discriminator, "0") == 0) {
         printf("\nDiscord: connected to user @%s (%s) - %s\n",
                connectedUser->username,
                connectedUser->globalName,
                connectedUser->userId);
-    }
-    else {
+    } else {
         printf("\nDiscord: connected to user %s#%s (%s) - %s\n",
                connectedUser->username,
                connectedUser->discriminator,
@@ -93,243 +48,135 @@ static void handleDiscordReady(const DiscordUser* connectedUser)
     }
 }
 
-static void handleDiscordDisconnected(int errcode, const char* message)
-{
+static void handleDiscordDisconnected(int errcode, const char* message) {
     printf("\nDiscord: disconnected (%d: %s)\n", errcode, message);
 }
 
-static void handleDiscordError(int errcode, const char* message)
-{
+static void handleDiscordError(int errcode, const char* message) {
     printf("\nDiscord: error (%d: %s)\n", errcode, message);
 }
 
-static void handleDebug(char isOut,
-                        const char* opcodeName,
-                        const char* message,
-                        uint32_t messageLength)
-{
-    unsigned int len = (messageLength > 7 ? messageLength : 7) + 6 + 7 + 7 + 1;
-    char* buf = (char*)malloc(len);
-    char* direction = isOut ? "send" : "receive";
-    if (!messageLength || !message || !message[0]) {
-        snprintf(buf, len, "[%s] [%s] <empty>", direction, opcodeName);
-    }
-    else {
-        int written = snprintf(buf, len, "[%s] [%s] ", direction, opcodeName);
-        int remaining = len - written;
-        int toWrite = remaining > (messageLength + 1) ? (messageLength + 1) : remaining;
-        int written2 = snprintf(buf + written, toWrite, message);
-    }
-    printf("[DEBUG] %s\n", buf);
-    free(buf);
-}
-
-static void handleDiscordJoin(const char* secret)
-{
-    printf("\nDiscord: join (%s)\n", secret);
-}
-
-static void handleDiscordSpectate(const char* secret)
-{
-    printf("\nDiscord: spectate (%s)\n", secret);
-}
-
-static void handleDiscordJoinRequest(const DiscordUser* request)
-{
-    int response = -1;
-    char yn[4];
-    printf("\nDiscord: join request from %s#%s - %s\n",
-           request->username,
-           request->discriminator,
-           request->userId);
-    do {
-        printf("Accept? (y/n)");
-        if (!prompt(yn, sizeof(yn))) {
-            break;
-        }
-
-        if (!yn[0]) {
-            continue;
-        }
-
-        if (yn[0] == 'y') {
-            response = DISCORD_REPLY_YES;
-            break;
-        }
-
-        if (yn[0] == 'n') {
-            response = DISCORD_REPLY_NO;
-            break;
-        }
-    } while (1);
-    if (response != -1) {
-        Discord_Respond(request->userId, response);
-    }
-}
-
-static void handleDiscordInvited(/* DISCORD_ACTIVITY_ACTION_TYPE_ */ int8_t type,
-                                 const DiscordUser* user,
-                                 const DiscordRichPresence* activity,
-                                 const char* sessionId,
-                                 const char* channelId,
-                                 const char* messageId)
-{
-    printf("Received invite type: %i, from user: %s, with activity state: %s, with session id: %s, "
-           "from channel id: %s, with message id: %s",
-           type,
-           user->username,
-           activity->state,
-           sessionId,
-           channelId,
-           messageId);
-
-    // Discord_AcceptInvite(user->userId, type, sessionId, channelId, messageId);
-}
-
-static void populateHandlers(DiscordEventHandlers* handlers)
-{
+static void populateHandlers(DiscordEventHandlers* handlers) {
     memset(handlers, 0, sizeof(handlers));
     handlers->ready = handleDiscordReady;
     handlers->disconnected = handleDiscordDisconnected;
     handlers->errored = handleDiscordError;
-    if (Debug)
-        handlers->debug = handleDebug;
-    handlers->joinGame = handleDiscordJoin;
-    handlers->spectateGame = handleDiscordSpectate;
-    handlers->joinRequest = handleDiscordJoinRequest;
-    handlers->invited = handleDiscordInvited;
+
+    /* We have no use for any of these */
+    handlers->debug = NULL;
+    handlers->joinGame = NULL;
+    handlers->spectateGame = NULL;
+    handlers->joinRequest = NULL;
+    handlers->invited = NULL;
 }
 
-static void discordUpdateHandlers()
-{
-    DiscordEventHandlers handlers;
-    populateHandlers(&handlers);
-    Discord_UpdateHandlers(&handlers);
-}
+/* ============================== LUA API ============================== */
 
-static void discordInit()
-{
+TA_DRPC static int initDiscord(lua_State *L) {
+    /* Get if privacy mode is set */
+    /* Ideally get a callback function we can call that will emit a Textadept event? Is that even possible? */
+
     DiscordEventHandlers handlers;
+    startTime = time(0);
     populateHandlers(&handlers);
     Discord_Initialize(APPLICATION_ID, &handlers, 1, NULL);
+
+    Discord_ClearPresence();
+
+    return 0;
 }
 
-static void gameLoop()
-{
-    char line[512];
-    char* space;
+TA_DRPC static int updateDiscordPresence(lua_State *L) {
+    /*TODO: This should pass:
+        - If we should send presence
+        - Textadept version (CURSES, GTK on Linux)
+        - The file's name, with extension (do a special check for preferences init.lua)
+        - The current lexer?
+        - If the file is modified but unsaved (editing vs viewing)
+        - Are we calling due to a run/compile command?
+        - Are we calling due to idle timeout?
+        - The Project folder name
 
-    StartTime = time(0);
+        - IDEAS:
+        - Amount of errors (LSP or from compile/run)
+        - Time since most recent commit?
+        - Git branch name?
+    */
 
-    printf("You are standing in an open field west of a white house.\n");
-    while (prompt(line, sizeof(line))) {
-        if (line[0]) {
-            if (line[0] == 'q') {
-                break;
-            }
+    bool send_presence = true;
+    bool private = false;
+    char ta_type = 'Q'; /* 'Q' = Qt, 'G' = GTK 'C' = CURSES */
 
-            if (line[0] == 't') {
-                printf("Shutting off Discord.\n");
-                Discord_Shutdown();
-                continue;
-            }
+    bool idle     = false;
+    bool modified = false;
+    char runner = 'N';  /* 'N' = No, 'R' = Running, 'C' = Compiling, 'B' = Building, 'D' = Debugging? */
+    char filename[128] = "init.lua";  /* Will be init.lua.T for preferences */
+    char lexer[32]     = "lua";
+    char project_name[128]  = "textadept-discord-rpc";
+    int errors = 0;
 
-            if (line[0] == 'y') {
-                printf("Reinit Discord.\n");
-                discordInit();
-                continue;
-            }
-
-            if (line[0] == 'c') {
-                if (SendPresence) {
-                    printf("Clearing presence information.\n");
-                    SendPresence = 0;
-                }
-                else {
-                    printf("Restoring presence information.\n");
-                    SendPresence = 1;
-                }
-                updateDiscordPresence();
-                continue;
-            }
-
-            if (line[0] == 'b') {
-                if (SendButtons) {
-                    printf("Removing buttons.\n");
-                    SendButtons = 0;
-                }
-                else {
-                    printf("Adding buttons.\n");
-                    SendButtons = 1;
-                }
-                updateDiscordPresence();
-                continue;
-            }
-
-            if (line[0] == 'i' && line[1]) {
-                if (line[1] == 'a') {
-                    printf("Opening activity invite (type 1).\n");
-                    Discord_OpenActivityInvite(1);
-                    continue;
-                }
-
-                if (line[1] == '2') { // does not seem to work
-                    printf("Opening activity invite (type 2).\n");
-                    Discord_OpenActivityInvite(2);
-                    continue;
-                }
-
-                if (line[1] == '0') { // does not seem to work either...
-                    printf("Opening activity invite (type 0).\n");
-                    Discord_OpenActivityInvite(0);
-                    continue;
-                }
-
-                if (line[1] == 'g') {
-                    printf("Opening guild invite.\n");
-                    Discord_OpenGuildInvite("fortnite");
-                    continue;
-                }
-            }
-
-            if (line[0] == 'd') {
-                printf("Turning debug %s\n", Debug ? "off" : "on");
-                Debug = !Debug;
-                discordUpdateHandlers();
-                continue;
-            }
-
-            if (time(NULL) & 1) {
-                printf("I don't understand that.\n");
-            }
-            else {
-                space = strchr(line, ' ');
-                if (space) {
-                    *space = 0;
-                }
-                printf("I don't know the word \"%s\".\n", line);
-            }
-
-            ++FrustrationLevel;
-
-            updateDiscordPresence();
-        }
-
-#ifdef DISCORD_DISABLE_IO_THREAD
-        Discord_UpdateConnection();
-#endif
-        Discord_RunCallbacks();
+    /* If not to send then clear and quit early */
+    if (!send_presence) {
+        Discord_ClearPresence();
+        return 0;
     }
-}
 
-static int initDiscord(lua_State *L) {
+    /* ===== Calculate Presence ===== */
+
+    char state[128];
+    char details[128];
+    char smallImageText[128];
+    //char largeImageText[128];
+
+    sprintf(state, "Editing a %s file.", lexer);
+    sprintf(details, "Project folder: %s", project_name);
+    sprintf(smallImageText, "Textadept %s",
+        ta_type == 'Q' ? "Qt" :
+        ta_type == 'C' ? "GTK" : "curses");
+    //sprintf(largeImageText, "%s", lexer);
+
+    /* ===== Send Presence ===== */
+
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
+    discordPresence.state = state;
+    discordPresence.details = details;
+    discordPresence.startTimestamp = startTime;
+#ifdef __APPLE__
+    discordPresence.smallImageKey = "textadept_mac";
+#else
+    discordPresence.smallImageKey = "textadept";
+#endif
+    discordPresence.largeImageKey = lexer;
+    discordPresence.smallImageText = smallImageText;
+    discordPresence.largeImageText = lexer;
+
+    Discord_UpdatePresence(&discordPresence);
+#ifdef DISCORD_DISABLE_IO_THREAD
+    Discord_UpdateConnection();
+#endif
+    Discord_RunCallbacks();
     return 0;
 }
 
-/*luaL_Reg*/
-
-static int luaopen_ta_rpc(lua_State *L) {
+TA_DRPC static int closeDiscord(lua_State *L) {
+    Discord_Shutdown();
     return 0;
 }
 
+/* Entry point */
+TA_DRPC static int luaopen_discordrpc(lua_State *L) {
+    static const struct luaL_Reg lib[] = {
+        {"init", initDiscord},
+        {"update", updateDiscordPresence},
+        {"close", closeDiscord},
+        {NULL, NULL} /* Sentinel */
+    };
+    luaL_newlib(L, lib);
+    return 1;
+}
 
+/* Platform entry points with names as required by Textadept modules */
+LUALIB_API int luaopen_discord_rpc_discordrpc(lua_State *L) { return luaopen_discordrpc(L); }
+LUALIB_API int luaopen_discord_rpc_discordrpcosx(lua_State *L) { return luaopen_discordrpc(L); }
+LUALIB_API int luaopen_discord_rpc_discordrpcarm(lua_State *L) { return luaopen_discordrpc(L); }
