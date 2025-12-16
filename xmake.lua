@@ -1,4 +1,4 @@
-add_rules("mode.debug", "mode.release")
+add_rules("mode.release")
 
 -- Please init/update the submodule first!
 package("DiscordRPC")
@@ -26,19 +26,14 @@ target('discordrpc')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
 	add_configfiles('init.lua', {onlycopy = true})
 
-	-- TODO: Do I need to give the Windows DLL special treatment, or will dllexports work okay?
-	-- Likewise do I need to enable some sort -undefined dynamic_lookup setting for Mac?
+	if (is_plat('linux')) then
+		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
+		set_filename('discordrpc.so')
+	elseif (is_plat('macosx')) then
+		set_filename('discordrpcosx.so')
+	end
 
-	-- Rename from libdiscord_rpc.so to discord_rpc.so
-	after_build(function (target)
-		if (is_plat('linux')) then
-			os.cp(target:targetfile(), path.join(target:targetdir(), "discordrpc.so"))
-		elseif (is_plat('macosx')) then
-			os.cp(target:targetfile(), path.join(target:targetdir(), "discordrpcosx.so"))
-		end
-		os.rm(target:targetfile())
+	on_install(function (target)
+		-- TODO: is this right still for Windows
+		os.cp(target:targetdir()..'/**', '~/.textadept/modules/discord_rpc')
 	end)
-
-	-- TODO: Delete renamed file on clean
-	-- TODO: Quick intall rule to ~/.textadept/modules
-	-- TODO: Rename for ARM? Check if ARMCord supports RPC?
