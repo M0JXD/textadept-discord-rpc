@@ -51,17 +51,17 @@ static void handleDiscordReady(const DiscordUser* connectedUser) {
                connectedUser->globalName,
                connectedUser->userId);
     }
-    puts(taPresenceData.userdetails);
+    //puts(taPresenceData.userdetails);
 }
 
 static void handleDiscordDisconnected(int errcode, const char* message) {
     sprintf(taPresenceData.disconnectedDetails, "Disconnected (%d: %s)", errcode, message);
-    puts(taPresenceData.disconnectedDetails);
+    //puts(taPresenceData.disconnectedDetails);
 }
 
 static void handleDiscordError(int errcode, const char* message) {
     sprintf(taPresenceData.errorDetails, "Error (%d: %s)", errcode, message);
-    puts(taPresenceData.errorDetails);
+    //puts(taPresenceData.errorDetails);
 }
 
 static void populateHandlers(DiscordEventHandlers* handlers) {

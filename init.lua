@@ -50,31 +50,26 @@ function M.update()
 
 	if M.stats.disconnectedDetails ~= '' then
 		ui.statusbar_text = M.stats.disconnectedDetails
+		M.stats.userdetails = ''
 	elseif M.stats.errorDetails ~= '' then
 		ui.statusbar_text = M.stats.errorDetails
+		M.stats.userdetails = ''
 	end
 
 	if (M.show_connected) then
 		local spacing = CURSES and '  ' or '    '
-		status = M.stats.userdetails ~= '' and '☺' or '☹'
-		ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '..status
-
-		-- Discord is a little slow to respond with it's connected status,
-		-- and without a good way of it emitting a Textadept event in the handler
-		-- This is the best idea I have :(
-		if (status and (displayed_connected == false)) then
-			ui.statusbar_text = M.stats.userdetails
-			displayed_connected = true
+		local status = M.stats.userdetails ~= '' and '☺' or '☹'
+		if (ui.buffer_statusbar_text:match('DRPC') == nil) then
+			ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '.. status
 		end
 	end
-
 end
 
 -- Convenience to allow user to 'start' RPC in their init.lua, but actually start RPC once Textadept is fully initialised
 function M.init()
 	events.connect(events.INITIALIZED, function ()
 		M.rpc.init()
-		M.update()
+		--M.update()
 	end)
 
 	-- Attach close handlers to shutdown Discord RPC cleanly
@@ -86,14 +81,19 @@ function M.init()
 	events.connect(events.RESET_BEFORE, function ()
 		M.rpc.close()
 	end)
-
 end
 
 -- Connect update to the right events
-events.connect(events.BUFFER_AFTER_SWITCH, M.update)
+--events.connect(events.BUFFER_NEW, M.update)
+--events.connect(events.BUFFER_AFTER_SWITCH, M.update)
 events.connect(events.UPDATE_UI, function (updated)
-	if ((updated == buffer.UPDATE_CONTENT) or (updated == buffer.UPDATE_SELECTION)) then
-		M.update()
+	M.update()
+	-- Discord is a little slow to respond with it's connected status,
+	-- and without a good way of it emitting a Textadept event in the handler
+	-- This is the best idea I have :(
+	if (M.stats.userdetails ~= '' and (displayed_connected == false)) then
+		ui.statusbar_text = M.stats.userdetails
+		displayed_connected = true
 	end
 end)
 
