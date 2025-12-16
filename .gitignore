@@ -1,2 +1,3 @@
 .xmake/linux/x86_64
 build
+.xmake/windows/x64

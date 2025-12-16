@@ -32,10 +32,10 @@ target('discordrpc')
 
 	if (is_plat('windows')) then
 		-- We need to embed the minimal copy of Lua
-		add_files('extern/*.c')
-		remove_files('extern/*lib.c')
-		add_files('extern/lauxlib.c')
-
+		add_defines('LUA_BUILD_AS_DLL', 'LUALIB')
+		add_files('extern/lua-5.5.0/src/*.c')
+		remove_files('extern/lua-5.5.0/src/*lib.c')
+		add_files('extern/lua-5.5.0/src/lauxlib.c')
 	elseif (is_plat('linux')) then
 		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
 		set_filename('discordrpc.so')

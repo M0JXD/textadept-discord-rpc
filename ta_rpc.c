@@ -1,18 +1,6 @@
 /* Simple Discord RPC wrapper suitable for Textadept */
 /* Based on the send_presence example */
 
-/* DLL Exports for Windows */
-#ifdef _WIN32
-    #define _CRT_SECURE_NO_WARNINGS /* thanks Microsoft */
-    #ifdef TA_DRPC_EXPORTS
-        #define TA_DRPC __declspec(dllexport)
-    #else
-        #define TA_DRPC __declspec(dllimport)
-    #endif
-#else
-    #define TA_DRPC
-#endif
-
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -33,7 +21,7 @@ static struct TAPresenceData {
     char userdetails[256];
     char disconnectedDetails[256];
     char errorDetails[256];
-} taPresenceData = {NULL, NULL, NULL};
+} taPresenceData = {"", "", ""};
 
 /* ============================== DISCORD HANDLERS ============================== */
 
@@ -80,7 +68,7 @@ static void populateHandlers(DiscordEventHandlers* handlers) {
 
 /* ============================== LUA API ============================== */
 
-TA_DRPC static int initDiscord(lua_State *L) {
+static int initDiscord(lua_State *L) {
     DiscordEventHandlers handlers;
     startTime = time(0);
     populateHandlers(&handlers);
@@ -93,7 +81,7 @@ TA_DRPC static int initDiscord(lua_State *L) {
     return 0;
 }
 
-TA_DRPC static int updateDiscordPresence(lua_State *L) {
+static int updateDiscordPresence(lua_State *L) {
     /* IDEAS
       - Amount of errors (LSP or from compile/run)
       - Time since most recent commit?
@@ -221,13 +209,13 @@ TA_DRPC static int updateDiscordPresence(lua_State *L) {
     return 3;
 }
 
-TA_DRPC static int closeDiscord(lua_State *L) {
+static int closeDiscord(lua_State *L) {
     Discord_Shutdown();
     return 0;
 }
 
 /* Entry point */
-TA_DRPC static int luaopen_discordrpc(lua_State *L) {
+static int luaopen_discordrpc(lua_State *L) {
     static const struct luaL_Reg lib[] = {
         {"init", initDiscord},
         {"update", updateDiscordPresence},
