@@ -40,7 +40,6 @@ function M.update()
 	-- Amount of errors (LSP or from compile/run)
 	-- Time since most recent commit?
 	-- Git branch name?
-	-- Update details
 
 	-- TODO: Handle edge cases like CMake etc.
 	local capitalised_type = buffer:get_lexer():sub(1,1):upper()..buffer:get_lexer():sub(2)

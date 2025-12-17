@@ -16,7 +16,6 @@
  * I have put this in the C code to force end users to recompile, as a different ID will not have the assets.
  */
 static const char* APPLICATION_ID = "1446884816174841971";
-static int64_t startTime;
 
 static struct TAPresenceData {
     char userdetails[256];
@@ -71,7 +70,6 @@ static void populateHandlers(DiscordEventHandlers* handlers) {
 
 static int initDiscord(lua_State *L) {
     DiscordEventHandlers handlers;
-    startTime = time(0);
     populateHandlers(&handlers);
     Discord_Initialize(APPLICATION_ID, &handlers, 1, NULL);
     Discord_ClearPresence();
