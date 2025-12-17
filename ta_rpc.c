@@ -1,3 +1,4 @@
+/* Copyright 2025 Jamie Drinkell. See LICENSE. */
 /* Simple Discord RPC wrapper suitable for Textadept */
 /* Based on the send_presence example */
 
