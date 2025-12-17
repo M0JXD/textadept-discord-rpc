@@ -102,28 +102,27 @@ function M.init()
 	events.connect(events.INITIALIZED, function ()
 		M.rpc.init()
 		M.update()
-	end)
+		-- Attach close handlers to shutdown Discord RPC cleanly
+		events.connect(events.QUIT, function ()
+			M.rpc.close()
+			return nil
+		end, 1)
 
-	-- Attach close handlers to shutdown Discord RPC cleanly
-	events.connect(events.QUIT, function ()
-		M.rpc.close()
-		return nil
-	end, 1)
+		events.connect(events.RESET_BEFORE, function ()
+			M.rpc.close()
+		end)
 
-	events.connect(events.RESET_BEFORE, function ()
-		M.rpc.close()
-	end)
-
-	-- Attach updater
-	events.connect(events.UPDATE_UI, function (updated)
-		M.update()
-		-- Discord is a little slow to respond with it's connected status,
-		-- and without a good way of it emitting a Textadept event in the handler
-		-- This is the best idea I have :(
-		if (M.stats.userdetails ~= '' and (is_connected == false)) then
-			ui.statusbar_text = M.stats.userdetails
-			is_connected = true
-		end
+		-- Attach updater
+		events.connect(events.UPDATE_UI, function (updated)
+			M.update()
+			-- Discord is a little slow to respond with it's connected status,
+			-- and without a good way of it emitting a Textadept event in the handler
+			-- This is the best idea I have :(
+			if (M.stats.userdetails ~= '' and (is_connected == false)) then
+				ui.statusbar_text = M.stats.userdetails
+				is_connected = true
+			end
+		end)
 	end)
 end
 
