@@ -83,6 +83,9 @@ static int initDiscord(lua_State *L) {
 }
 
 static int updateDiscordPresence(lua_State *L) {
+
+    /* TODO: It'd be better to have Lua just pass strings to set to the presence struct members */
+
     /* IDEAS
       - Amount of errors (LSP or from compile/run)
       - Time since most recent commit?

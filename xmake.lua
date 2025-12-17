@@ -26,9 +26,9 @@ target('discordrpc')
 	set_kind('shared')
 	add_files('ta_rpc.c')
 	add_packages('DiscordRPC')
+	add_includedirs('$(scriptdir)/extern/lua-5.5.0/src')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
 	add_configfiles('init.lua', {onlycopy = true})
-	add_includedirs('$(scriptdir)/extern/lua-5.5.0/src')
 
 	if (is_plat('windows')) then
 		-- We need to embed the minimal copy of Lua
@@ -55,6 +55,7 @@ target('discordrpc')
 		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
 		set_filename('discordrpc.so')
 	elseif (is_plat('macosx')) then
+		-- TODO: Might need to set some flags (-undefined dynamic_lookup)
 		set_filename('discordrpcosx.so')
 	end
 
