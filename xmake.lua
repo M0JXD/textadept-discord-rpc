@@ -6,9 +6,9 @@ package("DiscordRPC")
 	set_sourcedir(path.join(os.scriptdir(), "extern/discord-rpc"))
 	-- add_urls('https://github.com/harmonytf/discord-rpc.git')
 	-- Add the required system library for Windows Registry functions
-    if (is_plat('windows')) then
-        add_syslinks("Advapi32")
-    end
+	if (is_plat('windows')) then
+		add_syslinks("Advapi32")
+	end
 	on_install(function (package)
 		local configs = {}
 		table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
