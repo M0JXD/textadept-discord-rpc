@@ -2,6 +2,8 @@
 
 Simple Discord Rich Presence for Textadept. Requires Textadept 13+.
 
+![screenshot](assets/screenshot.png)
+
 Install this module by copying it into your *~/.textadept/modules/* directory or Textadept's
 *modules/* directory, and then putting the following in your *~/.textadept/init.lua*:
 
