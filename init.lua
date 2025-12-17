@@ -4,16 +4,15 @@
 M = {}
 M.show_connected = true  -- Update the statusbar
 M.private_mode = false  -- Be more vague with details, e.g. no file or folder names
+local is_connected = false  -- To track whether we're connected
 
 local lib = 'discord_rpc.discordrpc'
 if OSX then
 	lib = lib .. 'osx'
 elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
-	lib = lib .. 'arm'  -- TODO: Can Discord even support this?
+	lib = lib .. 'arm'  -- TODO: Can Discord/ARMCord even support this?
 end
 M.rpc = require(lib)
-
-local displayed_connected = false
 
 M.stats = {
 	userdetails = '',
@@ -122,9 +121,9 @@ function M.init()
 		-- Discord is a little slow to respond with it's connected status,
 		-- and without a good way of it emitting a Textadept event in the handler
 		-- This is the best idea I have :(
-		if (M.stats.userdetails ~= '' and (displayed_connected == false)) then
+		if (M.stats.userdetails ~= '' and (is_connected == false)) then
 			ui.statusbar_text = M.stats.userdetails
-			displayed_connected = true
+			is_connected = true
 		end
 	end)
 end

@@ -13,7 +13,7 @@ discord_rpc.init()
 ```
 
 Discord must be running before you start Textadept. Your Discord status will show information and images for the current buffer you are working on.
-You can set a privacy mode that limits the details with `discord_rpc.presence.private = true`.
+You can set a privacy mode that limits the details with `discord_rpc.private_mode = true`.
 
 This is untested on macOS and I can't offer any builds for that platform. It will very likely need some work before being functional there.
 
@@ -23,7 +23,7 @@ RPC is achieved via @harmonytf's fork of Discord's unmaintained RPC libary.
 
 Whilst the now recommend way to implement RPC is to use the [Discord Social SDK](https://discord.com/developers/docs/discord-social-sdk/overview), to even download it requires stating details about your "Company Name, Team Location, Role" etc. that simply don't apply for open source hobby projects.
 
-Please petition Discord to provide [a better option](https://github.com/discord/discord-rpc/issues/382#issuecomment-3620635979) for open source applications to integrate with RPC. I am not interested in trying to make a server myself (i.e. "hard mode") the same way as other Rich Presence extensions work for VSCord, Neocord, Emacs-RPC... etc. They previously offered a pleasant, openly licensed C interfaced library for this, there's no reason they can't again. From what I can tell in Discord's RPC visualiser, the code in the Social SDK is reusing this library anyways! How long the fork will continue to work I do not know, but the fork seems to be relatively well maintained and is about as close to "official" as I can find that fits within project requirements.
+Please petition Discord to provide [a better option](https://github.com/discord/discord-rpc/issues/382#issuecomment-3620635979) for open source applications to integrate with RPC. I am not interested in trying to make a server myself (i.e. "hard mode") the same way as other Rich Presence extensions work for VSCord, Neocord, Emacs-RPC... etc. They previously offered a pleasant, openly licensed C interfaced library for this, there's no reason they can't again. From what I can tell in Discord's RPC visualiser, the code in the Social SDK is reusing this library anyways! Luckily the fork seems to be pretty well maintained and is about as close to "official" as I can find that fits within project requirements.
 
 ## Building
 
@@ -48,7 +48,7 @@ I have made a Discord Developer Team for this (and possibly future) Discord proj
 ## Thanks
 
 - The icons are from the VSCord project.
-- Mitchell for Textadept
+- Mitchell for Textadept.
 
 ## TODO
 
