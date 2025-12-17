@@ -30,11 +30,11 @@ The library is built with [Xmake](https://xmake.io/). Before anything, after clo
 `git submodule update --init --recursive`
 
 You can then issue the build with `xmake`. Xmake will automatically build and use the underlying library.
-Search through the ./build/platform/arch/mode to the folder that contains the library and Lua file, which can be copied into the module folder.
-There is an install rule for `xmake i` that will install into `~/.textadept/modules/discord_rpc`
+Search through the `./build/platform/arch/mode` to the folder that contains the library and Lua file, which can be copied into the module folder.
+There is an install rule for `xmake i` that will install into `~/.textadept/modules/discord_rpc` but only works on Linux.
 
 Note that as Textadept 13 is currently using Lua 5.5rc1, I have checked it into Git. Due to limitations on Windows a small Lua build must be bundled into the DLL, and must be ABI compatible with Textadept's runtime.
-The xrepo package from Lua 5.4 works on other platforms as the API is the same and those builds only requires the header files.
+The xrepo package from Lua 5.4 works on other platforms as the API is the same and those builds only require the header files.
 
 ## Assets
 
@@ -42,15 +42,15 @@ Assets and their keys are tied to the Discord "app" that can be accessed/updated
 I have set the assets to have the same names as Textadept's lexers, the icons are from the VSCord project.
 See here for a clearer explanation: https://stackoverflow.com/questions/64417184/how-does-pypresence-work-where-do-i-get-the-image-key
 
-Your normal Discord account qualifies as a developer account. I have made a Discord Developer Team for this (and possibly future) Discord projects. If you would like to be added for direct access to the application_id or adjusting the assets please open an issue with the required Discord details so I can add you. In the spirit of of being open when asking you to share such information, my Discord username is (unsurprisingly) m0jxd.
+I have made a Discord Developer Team for this (and possibly future) Discord projects. If you would like to be added for direct access to the application_id or adjusting the assets please open an issue with the required Discord details so I can add you. In the spirit of of being open when asking you to share such information, my Discord username is (unsurprisingly) m0jxd.
 
 ## Thanks
 
-- The icons are from the VSCord project. Thank you!
+- The icons are from the VSCord project.
 - Mitchell for Textadept
 
 ## TODO
 
 - Code cleanup, more/improved features
 - Add LDoc and unit tests to align this module quality wise to Textadept's official ones
-- Setup Github Actions build
+- Setup GitHub Actions build
