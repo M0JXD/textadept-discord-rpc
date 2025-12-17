@@ -27,8 +27,8 @@ M.presence = {
 	idle = false,
 	modified = false,
 	runner = 'N',
-	filename = 'Untitled', -- buffer.filename:match('[^/\\]+$'),
-	lexer = 'text', -- buffer:get_lexer(),
+	filename = 'Untitled',
+	lexer = 'text',
 	project_name = 'NA',
 	errors = 0
 }
