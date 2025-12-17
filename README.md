@@ -12,20 +12,16 @@ local discord_rpc = require('discord_rpc')
 discord_rpc.init()
 ```
 
-Your Discord status will show information and images for the current file you are editing. You can set a privacy mode with `discord_rpc.presence.private = true`.
-This is untested on macOS and I can't offer any builds for that platform, but I have made some small best guess attempts to support it but I do not own any Apple devices to build nor test on.
+Your Discord status will show information and images for the current file you are editing. You can set a privacy mode that limits the details with `discord_rpc.presence.private = true`.
+This is untested on macOS and I can't offer any builds for that platform. It will very likely need some work before being functional there.
 
 ## About
 
-RPC is acheived via @harmonytf's fork of Discord's unmaintained RPC libary.
+RPC is achieved via @harmonytf's fork of Discord's unmaintained RPC libary.
 
 Whilst the now recommend way to implement RPC is to use the [Discord Social SDK](https://discord.com/developers/docs/discord-social-sdk/overview), to even download it requires stating details about your "Company Name, Team Location, Role" etc. that simply don't apply for open source hobby projects.
 
-Please petition Discord to provide [a better option](https://github.com/discord/discord-rpc/issues/382#issuecomment-3620635979) for open source applications to integrate with RPC. I am not interested in trying to make a server myself (i.e. "hard mode") the same way as other Rich Presence extensions work for VSCord, Neocord, Emacs-RPC... etc. They previously offered a pleasant, openly licensed C interfaced library for this, there's no reason they can't again. From what I can tell in Discord's RPC visualizer, the code in the Social SDK is reusing this library anyways!
-
-How long the fork will continue to work I do not know, but it fork seems to be relatively well maintained and is about as close to "official" as I can find that fits within project requirements.
-
-I have made a Discord Developer Team for this (and possibly future) Discord projects. If you would like to be added for direct access to the application_id or adjusting the assets please open an issue with the required Discord details so I can add you. In the spirit of of being open when asking you to share such information, my Discord username is (unsurprisingly) m0jxd.
+Please petition Discord to provide [a better option](https://github.com/discord/discord-rpc/issues/382#issuecomment-3620635979) for open source applications to integrate with RPC. I am not interested in trying to make a server myself (i.e. "hard mode") the same way as other Rich Presence extensions work for VSCord, Neocord, Emacs-RPC... etc. They previously offered a pleasant, openly licensed C interfaced library for this, there's no reason they can't again. From what I can tell in Discord's RPC visualiser, the code in the Social SDK is reusing this library anyways! How long the fork will continue to work I do not know, but it fork seems to be relatively well maintained and is about as close to "official" as I can find that fits within project requirements.
 
 ## Building
 
@@ -37,13 +33,16 @@ You can then issue the build with `xmake`. Xmake will automatically build and us
 Search through the ./build/platform/arch/mode to the folder that contains the library and Lua file, which can be copied into the module folder.
 There is an install rule for `xmake i` that will install into `~/.textadept/modules/discord_rpc`
 
+Note that as Textadept 13 is currently using Lua 5.5rc1, I have checked it into Git. Due to limitations on Windows a small Lua build must be bundled into the DLL, and must be ABI compatible with Textadept's runtime.
+The xrepo package from Lua 5.4 works on other platforms as the API is the same and those builds only requires the header files.
+
 ## Assets
 
-See here: https://stackoverflow.com/questions/64417184/how-does-pypresence-work-where-do-i-get-the-image-key
+Assets and their keys are tied to the Discord "app" that can be accessed/updated with a developer account. The application_id signifies to Discord which app is running and hard-coded into the C code.
+I have set the assets to have the same names as Textadept's lexers, the icons are from the VSCord project.
+See here for a clearer explanation: https://stackoverflow.com/questions/64417184/how-does-pypresence-work-where-do-i-get-the-image-key
 
-The discord application_id is attached to the project I created with my own dev account, and hard-coded into the C code. All the image keys are dependent on this key being tied to a Discord application with the correct assets.
-On this account they have the same names as Textadept's lexers, or in other cases (e.g. Arduino which has it's own icon but is lexed by the CPP lexer) the extensions that Textadept will pick up.
-The icons are from the VSCord project.
+Your normal Discord account qualifies as a developer account. I have made a Discord Developer Team for this (and possibly future) Discord projects. If you would like to be added for direct access to the application_id or adjusting the assets please open an issue with the required Discord details so I can add you. In the spirit of of being open when asking you to share such information, my Discord username is (unsurprisingly) m0jxd.
 
 ## Thanks
 
