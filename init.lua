@@ -34,7 +34,6 @@ M.presence = {
 	-- TODO: Add Party/Match/Secret and Buttons options?
 }
 
-
 -- Convenience wrapper that will get current details before calling rpc.update() and update UI
 function M.update()
 
@@ -66,14 +65,14 @@ function M.update()
 	if (io.get_project_root() and (not M.private_mode)) then
 		local project_name = io.get_project_root():match('[^/\\]+$')
 		M.presence.details = 'Project Folder: ' .. project_name
-		if (errors) then M.presence.details = M.presence.details .. ' - ' end
+	else
+		M.presence.details = ''
 	end
 
 	-- TODO: Errors
-	-- local errors = 1
+	--local errors = 1
 	if (errors) then
-		errors = 0
-		M.presence.details = M.presence.details .. 'Errors: ' .. errors
+		M.presence.details = ((M.presence.details == '') and 'Errors: ' or (M.presence.details .. ' - Errors: ')) .. errors
 	end
 
 	M.presence.largeImageKey = buffer:get_lexer()
