@@ -83,114 +83,38 @@ static int initDiscord(lua_State *L) {
 }
 
 static int updateDiscordPresence(lua_State *L) {
-
-    /* TODO: It'd be better to have Lua just pass strings to set to the presence struct members */
-
-    /* IDEAS
-      - Amount of errors (LSP or from compile/run)
-      - Time since most recent commit?
-      - Git branch name? */
-
     luaL_checktype(L, 1, LUA_TTABLE);
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
 
-    /* If we should send presence */
     lua_getfield(L, -1, "send_presence");
     bool send_presence = lua_toboolean(L, -1);
 
-    /* Private mode that doesn't display file names/project folder */
-    lua_getfield(L, -2, "private");
-    bool private = lua_toboolean(L, -1);
+    lua_getfield(L, -2, "state");
+    discordPresence.state = lua_tostring(L, -1);
 
-    /* Qt, GTK or CURSES version */
-    lua_getfield(L, -3, "version");
-    const char *version = lua_tostring(L, -1);
+    lua_getfield(L, -3, "details");
+    discordPresence.details = lua_tostring(L, -1);
 
-    /* Is user idling? */
-    lua_getfield(L, -4, "idle");
-    bool idle = lua_toboolean(L, -1);
+    lua_getfield(L, -4, "startTimestamp");
+    discordPresence.startTimestamp = lua_tonumber(L, -1);
 
-    /* Is the current buffer unsaved? */
-    lua_getfield(L, -5, "modified");
-    bool modified = lua_toboolean(L, -1);
+    lua_getfield(L, -5, "endTimestamp");
+    discordPresence.endTimestamp = lua_tonumber(L, -1);
 
-    /* Action being run */
-    lua_getfield(L, -6, "runner");
-    const char *runner = lua_tostring(L, -1);  /* 'N' = No, 'E' = Executing, 'R' = Running, 'C' = Compiling, 'B' = Building, 'D' = Debugging? */
+    lua_getfield(L, -6, "largeImageKey");
+    discordPresence.largeImageKey = lua_tostring(L, -1);
 
-    /* Filename of the current buffer */
-    lua_getfield(L, -7, "filename");
-    const char *filename = lua_tostring(L, -1);  /* Will be init.lua.T for preferences? */
+    lua_getfield(L, -7, "largeImageText");
+    discordPresence.largeImageText = lua_tostring(L, -1);
 
-    /* Lexer applied to current buffer TODO: This doesn't handle edge cases like arduino, would also be nice to check for preferences init.lua */
-    lua_getfield(L, -8, "lexer");
-    const char *lexer = lua_tostring(L, -1);  /* TODO: Special treatment for the likes of Arduino? */
+    lua_getfield(L, -8, "smallImageKey");
+    discordPresence.smallImageKey = lua_tostring(L, -1);
 
-    /* The project folder name */
-    lua_getfield(L, -9, "project_name");
-    const char *project_name = lua_tostring(L, -1);  /* NA will be shown if Textadept can't detect a project */
+    lua_getfield(L, -9, "smallImageText");
+    discordPresence.smallImageText = lua_tostring(L, -1);
 
-    /* Amount of LSP/Compile etc. errors */
-    lua_getfield(L, -10, "errors");
-    int errors = lua_tointeger(L, -1);
-
-    /* ===== Calculate Presence ===== */
-
-    char state[128];
-    char details[128];
-    char smallImageText[128];
-    char largeImageText[128];
-
-    char *runner_str = NULL;
-    switch (runner[0]) {
-        case 'E':
-            runner_str = "executing";
-            break;
-        case 'R':
-            runner_str = "running";
-            break;
-        case 'C':
-            runner_str = "compiling";
-            break;
-        case 'B':
-            runner_str = "building";
-            break;
-        case 'D':
-            runner_str = "debugging";
-            break;
-    }
-
-    if (private) {
-        sprintf(state, "Currently %s a %s file.", modified ? "editing" : runner[0] != 'N' ? runner_str : "viewing", lexer);
-        sprintf(details, "Errors: %d", errors);
-    } else {
-        sprintf(state, "Currently %s %s", modified ? "editing" : runner[0] != 'N' ? runner_str : "viewing", filename);
-        sprintf(details, "Project folder: %s, Errors: %d", project_name, errors);
-    }
-
-    if (idle) {
-        strcpy(state, "Currently idle.");
-    }
-
-    sprintf(smallImageText, "Textadept (%s)", version);
-
-    /* ===== Send Presence ===== */
-
-    DiscordRichPresence discordPresence;
-    memset(&discordPresence, 0, sizeof(discordPresence));
-    discordPresence.state = state;
-    discordPresence.details = details;
-    discordPresence.startTimestamp = startTime;
-#ifdef __APPLE__
-    discordPresence.smallImageKey = "textadept_mac";
-#else
-    discordPresence.smallImageKey = "textadept";
-#endif
-    discordPresence.smallImageText = smallImageText;
-    discordPresence.largeImageKey = lexer;
-    //lexer[0] -= 32;  /* Capitalise first letter */
-    sprintf(largeImageText, "Editing a %c%s file.", lexer[0] - 32, &lexer[1]);
-    discordPresence.largeImageText = largeImageText;
-    //lexer[0] += 32;  /* Uncapitalise first letter */
+    /* TODO: Do we want to support setting party/buttons etc.? */
 
     if (send_presence) {
         Discord_UpdatePresence(&discordPresence);

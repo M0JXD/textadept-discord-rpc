@@ -21,20 +21,27 @@ M.stats = {
 }
 
 M.presence = {
-	send_presence = true,
-	private = false,
-	version = QT and 'Qt' or GTK and 'GTK' or CURSES and 'curses',
-	idle = false,
-	modified = false,
-	runner = 'N',
-	filename = 'Untitled',
-	lexer = 'text',
-	project_name = 'NA',
-	errors = 0
+	state = '',
+	details = '',
+	startTimestamp = os.time(),
+	endTimestamp = 0,
+	smallImageKey = '',
+	smallImageText = '',
+	largeImageKey = '',
+	largeImageText = ''
+	-- TODO: Add Party/Match/Secret and Buttons options?
 }
+
 
 -- Convenience wrapper that will get current details before calling rpc.update() and update UI
 function M.update()
+
+    -- IDEAS
+	-- Amount of errors (LSP or from compile/run)
+	-- Time since most recent commit?
+	-- Git branch name?
+
+
 	-- Update details
 	M.presence.lexer = buffer:get_lexer()
 	if (buffer.filename) then
