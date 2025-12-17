@@ -59,6 +59,6 @@ target('discordrpc')
 	end
 
 	on_install(function (target)
-		-- TODO: Fix for Windows
+		-- TODO: Fix for Windows? Windows has annoying permissions and copy behaviour
 		os.cp(target:targetdir()..'/**', '~/.textadept/modules/discord_rpc')
 	end)

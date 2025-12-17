@@ -39,7 +39,7 @@ function M.update()
 	M.presence.lexer = buffer:get_lexer()
 	if (buffer.filename) then
 		local their = ''
-		if (buffer.filename:match('.textadept/init.lua')) then
+		if (buffer.filename:match('.textadept/init.lua') or buffer.filename:match('.textadept\\init.lua')) then
 			their = 'their Textadept ' -- Call em out
 		end
 		M.presence.filename = their .. buffer.filename:match('[^/\\]+$')
