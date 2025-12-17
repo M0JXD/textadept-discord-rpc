@@ -44,35 +44,40 @@ function M.update()
 	-- Git branch name?
 	-- Update details
 
-	-- State - TODO: Details like running, editing, debugging etc.
-	if (buffer.filename) then
-		local filename
-		local their = ''
-		if (buffer.filename:match('.textadept/init.lua') or buffer.filename:match('.textadept\\init.lua')) then
-			their = 'their Textadept ' -- Call em out
-		end
-		filename = their .. buffer.filename:match('[^/\\]+$')
+	-- TODO: Handle edge cases like CMake etc.
+	local capitalised_type = buffer:get_lexer():sub(1,1):upper()..buffer:get_lexer():sub(2)
 
-		M.presence.state = 'Currently ' .. (buffer.modify and 'editing ' or 'viewing ') .. filename
+	-- State - TODO: Details like running, editing, debugging etc.
+	local filestate = 'unknown'
+	if (M.private_mode) then
+		filestate = 'a ' .. capitalised_type .. ' file.'
+	else
+		if (buffer.filename) then
+			local their = ''
+			if (buffer.filename:match('.textadept/init.lua') or buffer.filename:match('.textadept\\init.lua')) then
+				their = 'their Textadept ' -- Call em out
+			end
+			filestate = their .. buffer.filename:match('[^/\\]+$')
+		end
 	end
+	M.presence.state = 'Currently ' .. (buffer.modify and 'editing ' or 'viewing ') .. filestate
 
 	-- Details
-	if (io.get_project_root()) then
+	if (io.get_project_root() and (not M.private_mode)) then
 		local project_name = io.get_project_root():match('[^/\\]+$')
 		M.presence.details = 'Project Folder: ' .. project_name
-	else
-		M.presence.details = 'No project'
+		if (errors) then M.presence.details = M.presence.details .. ' - ' end
 	end
 
 	-- TODO: Errors
+	-- local errors = 1
 	if (errors) then
 		errors = 0
-		M.presence.details = M.presence.details .. ' - Errors: ' .. errors
+		M.presence.details = M.presence.details .. 'Errors: ' .. errors
 	end
 
 	M.presence.largeImageKey = buffer:get_lexer()
-	M.presence.largeImageText = 'Working on a ' .. (M.presence.largeImageKey:sub(1,1):upper()..M.presence.largeImageKey:sub(2)) .. ' file.'
-
+	M.presence.largeImageText = 'Working on a ' .. capitalised_type .. ' file.'
 
 	-- Send away and get the stats
 	M.stats.userdetails, M.stats.disconnectedDetails, M.stats.errorDetails = M.rpc.update(M.presence)
