@@ -127,6 +127,7 @@ static int updateDiscordPresence(lua_State *L) {
 #endif
     Discord_RunCallbacks();
 
+    /* TODO: Ideally set a Lua table directly with the details */
     lua_pushstring(L, taPresenceData.userdetails);
     lua_pushstring(L, taPresenceData.disconnectedDetails);
     lua_pushstring(L, taPresenceData.errorDetails);

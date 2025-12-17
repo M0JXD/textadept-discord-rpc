@@ -3,6 +3,7 @@
 
 M = {}
 M.show_connected = true  -- Update the statusbar
+M.private_mode = false  -- Be more vague with details, e.g. no file or folder names
 
 local lib = 'discord_rpc.discordrpc'
 if OSX then
@@ -21,12 +22,13 @@ M.stats = {
 }
 
 M.presence = {
+	send_presence = true,
 	state = '',
 	details = '',
 	startTimestamp = os.time(),
 	endTimestamp = 0,
-	smallImageKey = '',
-	smallImageText = '',
+	smallImageKey = 'textadept',
+	smallImageText = 'Textadept ' .. (QT and '(Qt)' or GTK and '(GTK)' or CURSES and '(curses)'),
 	largeImageKey = '',
 	largeImageText = ''
 	-- TODO: Add Party/Match/Secret and Buttons options?
@@ -40,23 +42,37 @@ function M.update()
 	-- Amount of errors (LSP or from compile/run)
 	-- Time since most recent commit?
 	-- Git branch name?
-
-
 	-- Update details
-	M.presence.lexer = buffer:get_lexer()
+
+	-- State - TODO: Details like running, editing, debugging etc.
 	if (buffer.filename) then
+		local filename
 		local their = ''
 		if (buffer.filename:match('.textadept/init.lua') or buffer.filename:match('.textadept\\init.lua')) then
 			their = 'their Textadept ' -- Call em out
 		end
-		M.presence.filename = their .. buffer.filename:match('[^/\\]+$')
+		filename = their .. buffer.filename:match('[^/\\]+$')
+
+		M.presence.state = 'Currently ' .. (buffer.modify and 'editing ' or 'viewing ') .. filename
 	end
+
+	-- Details
 	if (io.get_project_root()) then
-		M.presence.project_name = io.get_project_root():match('[^/\\]+$')
+		local project_name = io.get_project_root():match('[^/\\]+$')
+		M.presence.details = 'Project Folder: ' .. project_name
 	else
-		M.presence.project_name = 'NA'
+		M.presence.details = 'No project'
 	end
-	M.presence.modified = buffer.modify
+
+	-- TODO: Errors
+	if (errors) then
+		errors = 0
+		M.presence.details = M.presence.details .. ' - Errors: ' .. errors
+	end
+
+	M.presence.largeImageKey = buffer:get_lexer()
+	M.presence.largeImageText = 'Working on a ' .. (M.presence.largeImageKey:sub(1,1):upper()..M.presence.largeImageKey:sub(2)) .. ' file.'
+
 
 	-- Send away and get the stats
 	M.stats.userdetails, M.stats.disconnectedDetails, M.stats.errorDetails = M.rpc.update(M.presence)
