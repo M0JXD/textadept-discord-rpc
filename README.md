@@ -12,7 +12,9 @@ local discord_rpc = require('discord_rpc')
 discord_rpc.init()
 ```
 
-Your Discord status will show information and images for the current file you are editing. You can set a privacy mode that limits the details with `discord_rpc.presence.private = true`.
+Discord must be running before you start Textadept. Your Discord status will show information and images for the current buffer you are working on.
+You can set a privacy mode that limits the details with `discord_rpc.presence.private = true`.
+
 This is untested on macOS and I can't offer any builds for that platform. It will very likely need some work before being functional there.
 
 ## About
@@ -38,9 +40,8 @@ The xrepo package from Lua 5.4 works on other platforms as the API is the same a
 
 ## Assets
 
-Assets and their keys are tied to the Discord "app" that can be accessed/updated with a developer account. The application_id signifies to Discord which app is running and hard-coded into the C code.
-I have set the assets to have the same names as Textadept's lexers, the icons are from the VSCord project.
-See here for a clearer explanation: https://stackoverflow.com/questions/64417184/how-does-pypresence-work-where-do-i-get-the-image-key
+Assets and their keys are tied to the Discord "app" that can be accessed/updated with a developer account. The application_id signifies to Discord which app is running and is hard-coded into shared library.
+I have set the assets to have the same names as Textadept's lexers, the icons are from the VSCord project. The assets are checked into the repo for completion's sake,  you do not need a local copy.
 
 I have made a Discord Developer Team for this (and possibly future) Discord projects. If you would like to be added for direct access to the application_id or adjusting the assets please open an issue with the required Discord details so I can add you. In the spirit of of being open when asking you to share such information, my Discord username is (unsurprisingly) m0jxd.
 
