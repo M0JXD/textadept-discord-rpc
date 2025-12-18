@@ -1,22 +1,22 @@
-add_rules("mode.release")
+add_rules('mode.release')
 
 -- Please init/update the submodule first!
-package("DiscordRPC")
-	add_deps("cmake")
-	set_sourcedir(path.join(os.scriptdir(), "extern/discord-rpc"))
+package('DiscordRPC')
+	add_deps('cmake')
+	set_sourcedir(path.join(os.scriptdir(), 'extern/discord-rpc'))
 	-- add_urls('https://github.com/harmonytf/discord-rpc.git')
 	-- Add the required system library for Windows Registry functions
 	if (is_plat('windows')) then
-		add_syslinks("Advapi32")
+		add_syslinks('Advapi32')
 	end
 	on_install(function (package)
 		local configs = {}
-		table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
-		table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
-		import("package.tools.cmake").install(package, configs)
+		table.insert(configs, '-DCMAKE_BUILD_TYPE=' .. (package:debug() and 'Debug' or 'Release'))
+		table.insert(configs, '-DBUILD_SHARED_LIBS=' .. (package:config('shared') and 'ON' or 'OFF'))
+		import('package.tools.cmake').install(package, configs)
 	end)
 	on_test(function (package)
-		assert(package:has_cfuncs("Discord_Initialize", {includes = "discord_rpc.h"}))
+		assert(package:has_cfuncs('Discord_Initialize', {includes = 'discord_rpc.h'}))
 	end)
 package_end()
 
