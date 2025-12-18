@@ -27,7 +27,7 @@ M.presence = {
 	startTimestamp = os.time(),
 	endTimestamp = 0,
 	smallImageKey = 'textadept',
-	smallImageText = 'Textadept ' .. (QT and '(Qt)' or GTK and '(GTK)' or CURSES and '(curses)'),
+	smallImageText = 'Textadept ' .. (QT and '(Qt)' or GTK and '(GTK)' or '(curses)'),
 	largeImageKey = '',
 	largeImageText = ''
 	-- TODO: Add Party/Match/Secret and Buttons options?
@@ -40,6 +40,8 @@ function M.update()
 
 	-- State
 	-- TODO: Details like running, editing, debugging etc.
+	local task = buffer.modify and 'editing ' or 'viewing '
+
 	local filestate = 'unknown'
 	if (M.private_mode) then
 		filestate = 'a ' .. capitalised_type .. ' file.'
@@ -52,7 +54,7 @@ function M.update()
 			filestate = their .. buffer.filename:match('[^/\\]+$')
 		end
 	end
-	M.presence.state = 'Currently ' .. (buffer.modify and 'editing ' or 'viewing ') .. filestate
+	M.presence.state = 'Currently ' .. task .. filestate
 
 	-- Details
 	-- IDEAS: Time since most recent commit? Git branch name?
