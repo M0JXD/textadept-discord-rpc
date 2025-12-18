@@ -35,16 +35,11 @@ M.presence = {
 
 -- Convenience wrapper that will get current details before calling rpc.update() and update UI
 function M.update()
-
-    -- IDEAS
-	-- Amount of errors (LSP or from compile/run)
-	-- Time since most recent commit?
-	-- Git branch name?
-
 	-- TODO: Handle edge cases like CMake etc.
 	local capitalised_type = buffer:get_lexer():sub(1,1):upper()..buffer:get_lexer():sub(2)
 
-	-- State - TODO: Details like running, editing, debugging etc.
+	-- State
+	-- TODO: Details like running, editing, debugging etc.
 	local filestate = 'unknown'
 	if (M.private_mode) then
 		filestate = 'a ' .. capitalised_type .. ' file.'
@@ -60,21 +55,22 @@ function M.update()
 	M.presence.state = 'Currently ' .. (buffer.modify and 'editing ' or 'viewing ') .. filestate
 
 	-- Details
+	-- IDEAS: Time since most recent commit? Git branch name?
 	if (io.get_project_root() and (not M.private_mode)) then
 		local project_name = io.get_project_root():match('[^/\\]+$')
-		M.presence.details = 'Project Folder: ' .. project_name
+		M.presence.details = 'Project directory: ' .. project_name
 	else
 		M.presence.details = ''
 	end
 
-	-- TODO: Errors
-	--local errors = 1
-	if (errors) then
-		M.presence.details = ((M.presence.details == '') and 'Errors: ' or (M.presence.details .. ' - Errors: ')) .. errors
+	-- TODO: Amount of issues (LSP or from compile/run)
+	--local issues = 1
+	if (issues) then
+		M.presence.details = ((M.presence.details == '') and 'Issues: ' or (M.presence.details .. ' - Issues: ')) .. errors
 	end
 
 	M.presence.largeImageKey = buffer:get_lexer()
-	M.presence.largeImageText = 'Working on a ' .. capitalised_type .. ' file.'
+	M.presence.largeImageText = 'Working on a ' .. capitalised_type .. (capitalised_type:find('file') and '.' or ' file.')
 
 	-- Send away and get the stats
 	M.stats.userdetails, M.stats.disconnectedDetails, M.stats.errorDetails = M.rpc.update(M.presence)
@@ -102,7 +98,6 @@ function M.init()
 	events.connect(events.INITIALIZED, function ()
 		M.rpc.init()
 		M.update()
-
 
 		-- Attach close handlers to shutdown Discord RPC cleanly
 		events.connect(events.QUIT, function ()
