@@ -14,11 +14,7 @@ elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
 end
 M.rpc = require(lib)
 
-M.stats = {
-	userdetails = '',
-	disconnectedDetails = '',
-	errorDetails = ''
-}
+M.stats = {}
 
 M.presence = {
 	send_presence = true,
@@ -75,20 +71,16 @@ function M.update()
 	M.presence.largeImageText = 'Working on a ' .. capitalised_type .. (capitalised_type:find('file') and '.' or ' file.')
 
 	-- Send away and get the stats
-	M.stats.userdetails, M.stats.disconnectedDetails, M.stats.errorDetails = M.rpc.update(M.presence)
+	M.stats = M.rpc.update(M.presence)
 
 	-- Show the details
 	if (M.show_connected) then
-		if M.stats.disconnectedDetails ~= '' then
-			ui.statusbar_text = M.stats.disconnectedDetails
-			M.stats.userdetails = ''
-		elseif M.stats.errorDetails ~= '' then
-			ui.statusbar_text = M.stats.errorDetails
-			M.stats.userdetails = ''
+		if M.stats.errcode ~= 0 then
+			ui.statusbar_text = M.stats.errDetails
 		end
 
 		local spacing = CURSES and '  ' or '    '
-		local status = M.stats.userdetails ~= '' and '☺' or '☹'
+		local status = M.stats.username ~= '' and '☺' or '☹'
 		if (ui.buffer_statusbar_text:match('DRPC') == nil) then
 			ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '.. status
 		end
@@ -115,12 +107,22 @@ function M.init()
 			-- and without a good way of it emitting a Textadept event in the handler
 			-- This is the best idea I have :(
 			-- TODO: Put this in a coroutine loop so connected status can show by itself
-			if (M.stats.userdetails ~= '' and (is_connected == false)) then
-				ui.statusbar_text = M.stats.userdetails
+			if (M.stats.lastCallback == 1 and (is_connected == false)) then
+				ui.statusbar_text = 'Connected to ' .. M.stats.username .. '.'
 				is_connected = true
 			end
 		end)
 	end)
 end
+
+-- Mainly to allow reconnecting but can also be called to connect
+function M.reconnect()
+	M.rpc.close()
+	M.rpc.init()
+	M.update()
+end
+
+-- TODO: Add a reconnect option under help menu
+
 
 return M

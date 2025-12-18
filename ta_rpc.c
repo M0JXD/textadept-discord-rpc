@@ -17,39 +17,47 @@
  */
 static const char* APPLICATION_ID = "1446884816174841971";
 
-static struct TAPresenceData {
-    char userdetails[256];
-    char disconnectedDetails[256];
+static struct DiscordError {
+    char lastCallback;  /* '0' = None, '1' = Ready, '2' = Disconnect, '3' = Error */
+    int errcode;
     char errorDetails[256];
-} taPresenceData = {"", "", ""};
+} discordError = { 0, 0, "" };
+
+static DiscordUser discordUser = {"", "", "", "", ""};
 
 /* ============================== DISCORD HANDLERS ============================== */
 
 /* TODO: Inform Textadept on the status of these */
 static void handleDiscordReady(const DiscordUser* connectedUser) {
-    if (!connectedUser->discriminator[0] || strcmp(connectedUser->discriminator, "0") == 0) {
-        sprintf(taPresenceData.userdetails ,"Connected to user @%s (%s) - %s",
-               connectedUser->username,
-               connectedUser->globalName,
-               connectedUser->userId);
-    } else {
-        sprintf(taPresenceData.userdetails, "Connected to user %s#%s (%s) - %s",
-               connectedUser->username,
-               connectedUser->discriminator,
-               connectedUser->globalName,
-               connectedUser->userId);
-    }
-    //puts(taPresenceData.userdetails);
+    /*if (!connectedUser->discriminator[0] || strcmp(connectedUser->discriminator, "0") == 0) {*/
+    /*    printf("\nDiscord: connected to user @%s (%s) - %s\n",*/
+    /*           connectedUser->username,*/
+    /*           connectedUser->globalName,*/
+    /*           connectedUser->userId);*/
+    /*}*/
+    /*else {*/
+    /*    printf("\nDiscord: connected to user %s#%s (%s) - %s\n",*/
+    /*           connectedUser->username,*/
+    /*           connectedUser->discriminator,*/
+    /*           connectedUser->globalName,*/
+    /*           connectedUser->userId);*/
+    /*}*/
+    memcpy(&discordUser, connectedUser, sizeof(DiscordUser));
+    discordError.lastCallback = 1;
 }
 
 static void handleDiscordDisconnected(int errcode, const char* message) {
-    sprintf(taPresenceData.disconnectedDetails, "Disconnected (%d: %s)", errcode, message);
-    //puts(taPresenceData.disconnectedDetails);
+    /*printf("Disconnected (%d: %s)\n", errcode, message);*/
+    discordError.lastCallback = 2;
+    discordError.errcode = errcode;
+    strcpy(discordError.errorDetails, message);
 }
 
 static void handleDiscordError(int errcode, const char* message) {
-    sprintf(taPresenceData.errorDetails, "Error (%d: %s)", errcode, message);
-    //puts(taPresenceData.errorDetails);
+    /*printf("Error (%d: %s)\n", errcode, message);*/
+    discordError.lastCallback = 3;
+    discordError.errcode = errcode;
+    strcpy(discordError.errorDetails, message);
 }
 
 static void populateHandlers(DiscordEventHandlers* handlers) {
@@ -125,15 +133,31 @@ static int updateDiscordPresence(lua_State *L) {
 #endif
     Discord_RunCallbacks();
 
-    /* TODO: Ideally set a Lua table directly with the details */
-    lua_pushstring(L, taPresenceData.userdetails);
-    lua_pushstring(L, taPresenceData.disconnectedDetails);
-    lua_pushstring(L, taPresenceData.errorDetails);
-    /* Now the data is passed forward, clear them? */
-    //taPresenceData.userdetails[0] = '\0';
-    //taPresenceData.disconnectedDetails[0] = '\0';
-    //taPresenceData.errorDetails[0] = '\0';
-    return 3;
+    /* Create a Lua table to be returned */
+    lua_createtable(L, 0, 7);
+
+    lua_pushstring(L, discordUser.username);
+    lua_setfield(L, -2, "username");
+
+    lua_pushstring(L, discordUser.globalName);
+    lua_setfield(L, -2, "globalName");
+
+    lua_pushstring(L, discordUser.userId);
+    lua_setfield(L, -2, "userId");
+
+    lua_pushstring(L, discordUser.discriminator);
+    lua_setfield(L, -2, "discriminator");
+
+    lua_pushinteger(L, discordError.lastCallback);
+    lua_setfield(L, -2, "lastCallback");
+
+    lua_pushinteger(L, discordError.errcode);
+    lua_setfield(L, -2, "errcode");
+
+    lua_pushstring(L, discordError.errorDetails);
+    lua_setfield(L, -2, "errorDetails");
+
+    return 1;  /* The table */
 }
 
 static int closeDiscord(lua_State *L) {
