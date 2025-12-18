@@ -44,7 +44,8 @@ function M.update()
 	else
 		if (buffer.filename) then
 			local their = ''
-			if (buffer.filename:match('.textadept/init.lua') or buffer.filename:match('.textadept\\init.lua')) then
+			if (buffer.filename:match('.textadept/init.lua')
+				or buffer.filename:match('.textadept\\init.lua')) then
 				their = 'their Textadept ' -- Call em out
 			end
 			filestate = their .. buffer.filename:match('[^/\\]+$')
@@ -64,11 +65,13 @@ function M.update()
 	-- TODO: Amount of issues (LSP or from compile/run)
 	--local issues = 1
 	if (issues) then
-		M.presence.details = ((M.presence.details == '') and 'Issues: ' or (M.presence.details .. ' - Issues: ')) .. errors
+		M.presence.details = ((M.presence.details == '') and 'Issues: '
+			or (M.presence.details .. ' - Issues: ')) .. errors
 	end
 
 	M.presence.largeImageKey = buffer:get_lexer()
-	M.presence.largeImageText = 'Working on a ' .. capitalised_type .. (capitalised_type:find('file') and '.' or ' file.')
+	M.presence.largeImageText = 'Working on a ' .. capitalised_type ..
+		(capitalised_type:find('file') and '.' or ' file.')
 
 	-- Send away and get the stats
 	M.stats = M.rpc.update(M.presence)
@@ -87,7 +90,8 @@ function M.update()
 	end
 end
 
--- Convenience to allow user to 'start' RPC in their init.lua, but actually starts RPC once Textadept is fully initialised
+-- Convenience to allow user to 'start' RPC in their init.lua,
+-- but actually starts RPC once Textadept is fully initialised
 function M.init()
 	events.connect(events.INITIALIZED, function ()
 		M.rpc.init()

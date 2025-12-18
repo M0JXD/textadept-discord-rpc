@@ -13,7 +13,7 @@
 
 /* This client_id is tied to a Discord app made on my (M0JXD's) dev account for this project.
  * If you'd rather have your own ID change it here.
- * I have put this in the C code to force end users to recompile, as a different ID will not have the assets.
+ * This is in the C code to force a recompile, as a different ID will not have the assets.
  */
 static const char* APPLICATION_ID = "1446884816174841971";
 
