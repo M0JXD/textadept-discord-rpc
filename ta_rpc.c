@@ -77,14 +77,18 @@ static void populateHandlers(DiscordEventHandlers* handlers) {
 /* ============================== LUA API ============================== */
 
 static int initDiscord(lua_State *L) {
+    /* Incase we're reiniting, clear any previous data */
+    discordUser.username      = "";
+    discordUser.globalName    = "";
+    discordUser.userId        = "";
+    discordUser.discriminator = "";
+    discordError.lastCallback = 0;
+    discordError.errcode      = 0;
+    strcpy(discordError.errorDetails, "");
+
     DiscordEventHandlers handlers;
     populateHandlers(&handlers);
     Discord_Initialize(APPLICATION_ID, &handlers, 1, NULL);
-    Discord_ClearPresence();
-#ifdef DISCORD_DISABLE_IO_THREAD
-    Discord_UpdateConnection();
-#endif
-    Discord_RunCallbacks();
     return 0;
 }
 
