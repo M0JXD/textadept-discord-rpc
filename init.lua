@@ -192,10 +192,10 @@ local discord_menu = {
 		ui.dialogs.message{
 			title = 'Discord Stats',
 			text =
-			'Username:    '.. M.stats.username .. '\n' ..
+			'Username: ' .. M.stats.username .. '\n' ..
 			'Global Name: ' .. M.stats.globalName .. '\n' ..
-			'User ID:     ' .. M.stats.userId .. '\n' ..
-			'Connected:   ' .. (is_connected and 'Yes' or 'No')
+			'User ID: ' .. M.stats.userId .. '\n' ..
+			'Connected: ' .. (is_connected and 'Yes' or 'No')
 		}
 	end}
 }
