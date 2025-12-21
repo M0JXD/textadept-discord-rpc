@@ -31,7 +31,6 @@ M.presence = {
 }
 
 local function attach_handlers()
-	-- Attach close handlers to shutdown Discord RPC cleanly
 	events.connect(events.QUIT, function ()
 		M.rpc.close()
 		return nil
@@ -39,8 +38,6 @@ local function attach_handlers()
 	events.connect(events.RESET_BEFORE, function ()
 		M.rpc.close() ; is_connected = false
 	end)
-
-	-- Attach updater
 	events.connect(events.UPDATE_UI, M.update)
 end
 
@@ -105,7 +102,7 @@ function M.update()
 	update_presence_details()
 	M.stats = M.rpc.update(M.presence)
 
-	-- Show the details
+	-- Show the details - TODO: Seperate handling/reconnect behaviour from display code
 	if (M.show_connected) then
 		local spacing = CURSES and '  ' or '    '
 		if (M.stats.lastCallback == 0) then
@@ -123,16 +120,15 @@ function M.update()
 			end
 		elseif (M.stats.lastCallback == 1) then
 			if (is_connected == false) then
-				ui.statusbar_text = 'Connected to ' .. M.stats.username .. '.'
-				is_connected = true
-				attach_handlers()
+				ui.statusbar_text = 'Discord: Connected to ' .. M.stats.username .. '.'
+				is_connected = true ; attach_handlers()
 			end
 		elseif (M.stats.lastCallback == 2) then
-			ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errDetails
+			ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
 			is_connected = false ; remove_handlers()
 			M.rpc.close()
 		elseif (M.stats.lastCallback == 3) then
-			ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errDetails
+			ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
 			is_connected = false ; remove_handlers()
 			M.rpc.close()
 		end
@@ -156,9 +152,10 @@ function M.init()
 	end)
 end
 
--- Mainly to allow reconnecting but can also be called to connect
+-- Manually connect to Discord - not suitable for calling from init.lua
 -- NOTE: The Discord RPC library has it's own retry mechanism that might mean this won't run for a while
-function M.reconnect()
+function M.connect()
+	max_tries = 10
 	if (is_connected) then
 		M.rpc.close() ; is_connected = false
 		remove_handlers()
