@@ -71,7 +71,7 @@ local function update_presence_details()
 
 	local filestate = 'Untitled'
 	if (M.private_mode) then
-		filestate = 'a ' .. capitalised_type .. ' file.'
+		filestate = 'a ' .. capitalised_type .. (capitalised_type:find('file') and '.' or ' file.')
 	else
 		if (buffer.filename) then
 			local their = ''
