@@ -142,7 +142,6 @@ function M.update()
 	end
 end
 
-
 -- Convenience to allow user to 'start' RPC in their init.lua
 -- Actually starts RPC once Textadept is fully initialised (so buffer/lexer names etc. will be present)
 function M.init()
