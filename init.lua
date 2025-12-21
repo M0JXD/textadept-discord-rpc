@@ -111,7 +111,6 @@ function M.update()
 	update_presence_details()
 	M.stats = M.rpc.update(M.presence)
 
-	local spacing = CURSES and '  ' or '    '
 	if (M.stats.lastCallback == 0) then
 		-- Discord hasn't run any handlers yet, try sending another update
 		is_connected = false
@@ -143,7 +142,8 @@ function M.update()
 
 	if (M.show_connected) then
 		if (ui.buffer_statusbar_text:match('DRPC') == nil) then
-			ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '.. (is_connected and '☺' or '☹')
+			ui.buffer_statusbar_text = ui.buffer_statusbar_text .. (CURSES and '  ' or '    ') ..
+				'DRPC: '.. (is_connected and '☺' or '☹')
 		else
 			local without_status = string.sub(ui.buffer_statusbar_text, 1, -4)
 			ui.buffer_statusbar_text = without_status .. (is_connected and '☺' or '☹')
