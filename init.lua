@@ -183,14 +183,14 @@ end
 
 -- TODO: Add some options under help menu with stats, disconnect, connect etc.
 
-_L['Discord'] = '_Discord'
+_L['Discord RPC'] = '_Discord RPC'
 local discord_menu = {
-	title = _L['Discord'],
+	title = _L['Discord RPC'],
 	{'Connect/Reconnect', M.connect},
 	{'Disconnect', M.close},
-	{'Stats', function ()
+	{'Status', function ()
 		ui.dialogs.message{
-			title = 'Discord Stats',
+			title = 'Discord RPC Status',
 			text =
 			'Username: ' .. M.stats.username .. '\n' ..
 			'Global Name: ' .. M.stats.globalName .. '\n' ..
