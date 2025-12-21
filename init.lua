@@ -4,7 +4,8 @@
 M = {}
 M.show_connected = true  -- Update the statusbar
 M.private_mode = false  -- Be more vague with details, e.g. no file or folder names
-local max_tries = 10  -- Maximum tries at startup to to connect - TODO: Let's not change this variable
+M.connect_attempts = 10
+local attempts = 0  -- Maximum tries at startup to to connect - TODO: Let's not change this variable
 local is_connected = false  -- To track whether we're connected
 
 local lib = 'discord_rpc.discordrpc'
@@ -15,7 +16,15 @@ elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
 end
 M.rpc = require(lib)
 
-M.stats = {}
+M.stats = {
+	--username
+	--globalName
+	--userId
+	--discriminator
+	--lastCallback
+	--errcode
+	--errorDetails
+}
 
 M.presence = {
 	send_presence = true,
@@ -102,37 +111,37 @@ function M.update()
 	update_presence_details()
 	M.stats = M.rpc.update(M.presence)
 
-	-- Show the details - TODO: Seperate handling/reconnect behaviour from display code
-	if (M.show_connected) then
-		local spacing = CURSES and '  ' or '    '
-		if (M.stats.lastCallback == 0) then
-			-- Discord hasn't run any handlers yet, try sending another update
-			is_connected = false
-			if (max_tries ~= 0) then
-				max_tries = max_tries - 1
-				timeout(0.2, function ()
-					ui.statusbar_text = 'Attempting to connect to Discord...'
-					M.update()
-				end)
-			else
-				ui.statusbar_text = 'Could not connect to Discord.'
-				M.rpc.close()  -- Just in case it's some weird connection issue
-			end
-		elseif (M.stats.lastCallback == 1) then
-			if (is_connected == false) then
-				ui.statusbar_text = 'Discord: Connected to ' .. M.stats.username .. '.'
-				is_connected = true ; attach_handlers()
-			end
-		elseif (M.stats.lastCallback == 2) then
-			ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
-			is_connected = false ; remove_handlers()
-			M.rpc.close()
-		elseif (M.stats.lastCallback == 3) then
-			ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
-			is_connected = false ; remove_handlers()
-			M.rpc.close()
+	local spacing = CURSES and '  ' or '    '
+	if (M.stats.lastCallback == 0) then
+		-- Discord hasn't run any handlers yet, try sending another update
+		is_connected = false
+		if (attempts ~= M.connect_attempts) then
+			attempts = attempts + 1
+			timeout(0.2, function ()
+				ui.statusbar_text = 'Attempting to connect to Discord...'
+				M.update()
+			end)
+		else
+			ui.statusbar_text = 'Could not connect to Discord.'
+			M.rpc.close()  -- Just in case it's some weird connection issue
+			attempts = 0
 		end
+	elseif (M.stats.lastCallback == 1) then
+		if (is_connected == false) then
+			ui.statusbar_text = 'Discord: Connected to ' .. M.stats.globalName .. '.'
+			is_connected = true ; attach_handlers()
+		end
+	elseif (M.stats.lastCallback == 2) then
+		ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
+		is_connected = false ; remove_handlers()
+		M.rpc.close()
+	elseif (M.stats.lastCallback == 3) then
+		ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
+		is_connected = false ; remove_handlers()
+		M.rpc.close()
+	end
 
+	if (M.show_connected) then
 		if (ui.buffer_statusbar_text:match('DRPC') == nil) then
 			ui.buffer_statusbar_text = ui.buffer_statusbar_text .. spacing .. 'DRPC: '.. (is_connected and '☺' or '☹')
 		else
@@ -142,23 +151,20 @@ function M.update()
 	end
 end
 
--- Convenience to allow user to 'start' RPC in their init.lua
--- Actually starts RPC once Textadept is fully initialised (so buffer/lexer names etc. will be present)
-function M.init()
-	events.connect(events.INITIALIZED, function ()
-		M.rpc.init()
-		M.update()
-	end)
+function M.close()
+	attempts = 0
+	if (is_connected) then
+		 is_connected = false
+		remove_handlers()
+	end
+	M.rpc.close()
 end
 
 -- Manually connect to Discord - not suitable for calling from init.lua
--- NOTE: The Discord RPC library has it's own retry mechanism that might mean this won't run for a while
+-- NOTE: The Discord RPC library has it's own retry mechanism
+-- that might mean this won't run for a while if using to reconnect
 function M.connect()
-	max_tries = 10
-	if (is_connected) then
-		M.rpc.close() ; is_connected = false
-		remove_handlers()
-	end
+	M.close()
 
 	timeout(0.2, function ()
 		M.rpc.init()
@@ -166,6 +172,37 @@ function M.connect()
 	end)
 end
 
--- TODO: Add a reconnect option under help menu
+-- Convenience to allow user to 'start' RPC in their init.lua
+-- Actually starts RPC once Textadept is fully initialised (so buffer/lexer names etc. will be present)
+function M.init()
+	attempts = 0
+	events.connect(events.INITIALIZED, function ()
+		M.connect()
+	end)
+end
+
+-- TODO: Add some options under help menu with stats, disconnect, connect etc.
+
+_L['Discord'] = '_Discord'
+local discord_menu = {
+	title = _L['Discord'],
+	{'Connect/Reconnect', M.connect},
+	{'Disconnect', M.close},
+	{'Stats', function ()
+		ui.dialogs.message{
+			title = 'Discord Stats',
+			text =
+			'Username:    '.. M.stats.username .. '\n' ..
+			'Global Name: ' .. M.stats.globalName .. '\n' ..
+			'User ID:     ' .. M.stats.userId .. '\n' ..
+			'Connected:   ' .. (is_connected and 'Yes' or 'No')
+		}
+	end}
+}
+
+-- Add a menu entry.
+local help = textadept.menu.menubar['Help']
+table.insert(help, #help, discord_menu)
+table.insert(help, #help, '')
 
 return M
