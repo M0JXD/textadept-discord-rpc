@@ -165,7 +165,6 @@ end
 -- that might mean this won't run for a while if using to reconnect
 function M.connect()
 	M.close()
-
 	timeout(0.2, function ()
 		M.rpc.init()
 		M.update()
@@ -181,12 +180,16 @@ function M.init()
 	end)
 end
 
+-- Add a menu entry.
 _L['Discord RPC'] = '_Discord RPC'
+_L['Connect/Reconnect'] = '_Connect/Reconnect'
+_L['Disconnect'] = '_Disconnect'
+_L['Status'] = '_Status'
 local discord_menu = {
 	title = _L['Discord RPC'],
-	{'Connect/Reconnect', M.connect},
-	{'Disconnect', M.close},
-	{'Status', function ()
+	{_L['Connect/Reconnect'], M.connect},
+	{_L['Disconnect'], M.close},
+	{_L['Status'], function ()
 		ui.dialogs.message{
 			title = 'Discord RPC Status',
 			text =
@@ -197,8 +200,6 @@ local discord_menu = {
 		}
 	end}
 }
-
--- Add a menu entry.
 local help = textadept.menu.menubar['Help']
 table.insert(help, #help, discord_menu)
 table.insert(help, #help, '')
