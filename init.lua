@@ -2,10 +2,10 @@
 -- Textadept Discord Rich Presence
 
 M = {}
-M.show_connected = true  -- Update the statusbar
+M.show_connected = true  -- Display 'DRPC' in buffer_statusbar
 M.private_mode = false  -- Be more vague with details, e.g. no file or folder names
-M.connect_attempts = 10
-local attempts = 0  -- Maximum tries at startup to to connect - TODO: Let's not change this variable
+M.connect_attempts = 10  -- Maximum tries at startup to to connect
+local attempts = 0
 local is_connected = false  -- To track whether we're connected
 
 local lib = 'discord_rpc.discordrpc'
@@ -180,8 +180,6 @@ function M.init()
 		M.connect()
 	end)
 end
-
--- TODO: Add some options under help menu with stats, disconnect, connect etc.
 
 _L['Discord RPC'] = '_Discord RPC'
 local discord_menu = {
