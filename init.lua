@@ -39,6 +39,22 @@ M.presence = {
 	-- TODO: Add Party/Match/Secret and Buttons options?
 }
 
+-- Lexer names that are not suitable for first letter capitalisation
+M.display_names = {
+	asm = "ASM",
+	cmake = "CMake",
+	cpp = "C++",
+	csharp = "C#",
+	css = "CSS",
+	fsharp = "F#",
+	html = "HTML",
+	javascript = "JavaScript",
+	json = "JSON",
+	toml = "TOML",
+	vhdl = "VHDL",
+	yaml = "YAML"
+}
+
 local function attach_handlers()
 	events.connect(events.QUIT, function ()
 		M.rpc.close()
@@ -62,8 +78,12 @@ local function remove_handlers()
 end
 
 local function update_presence_details()
-	-- TODO: Handle edge cases like CMake etc.
-	local capitalised_type = buffer:get_lexer():sub(1,1):upper()..buffer:get_lexer():sub(2)
+	local display_name
+	if (M.display_names[buffer:get_lexer()]) then
+		display_name = M.display_names[buffer:get_lexer()]
+	else
+		display_name = buffer:get_lexer():sub(1,1):upper()..buffer:get_lexer():sub(2)
+	end
 
 	-- State
 	-- TODO: Details like running, editing, debugging etc.
@@ -71,7 +91,7 @@ local function update_presence_details()
 
 	local filestate = 'Untitled'
 	if (M.private_mode) then
-		filestate = 'a ' .. capitalised_type .. (capitalised_type:find('file') and '.' or ' file.')
+		filestate = 'a ' .. display_name .. (display_name:find('file') and '.' or ' file.')
 	else
 		if (buffer.filename) then
 			local their = ''
@@ -101,8 +121,8 @@ local function update_presence_details()
 	end
 
 	M.presence.largeImageKey = buffer:get_lexer()
-	M.presence.largeImageText = 'Working on a ' .. capitalised_type ..
-		(capitalised_type:find('file') and '.' or ' file.')
+	M.presence.largeImageText = 'Working on a ' .. display_name ..
+		(display_name:find('file') and '.' or ' file.')
 
 end
 
