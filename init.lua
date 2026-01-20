@@ -41,22 +41,32 @@ M.presence = {
 
 -- Lexer names that are not suitable for first letter capitalisation
 M.display_names = {
+	applescript = "AppleScript",
 	asm = "ASM",
+	asp = "ASP",
+	autoit = "AutoIt",
 	cmake = "CMake",
 	coffeescript = "CoffeeScript",
 	cpp = "C++",
 	csharp = "C#",
 	css = "CSS",
+	cuda = "CUDA",
 	fsharp = "F#",
+	glsl = "GLSL",
 	html = "HTML",
 	javascript = "JavaScript",
 	json = "JSON",
 	matlab = "MATLAB",
+	moonscript = "MoonScript",
+	objective_c = "Objective-C",
 	php = "PHP",
+	powershell = "PowerShell",
 	sql = "SQL",
 	toml = "TOML",
 	typescript = "TypeScript",
+	vb = "Visual Basic",
 	vhdl = "VHDL",
+	xml = "XML",
 	yaml = "YAML"
 }
 
