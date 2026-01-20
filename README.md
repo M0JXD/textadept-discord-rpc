@@ -35,8 +35,7 @@ You can then issue the build with `xmake`. Xmake will automatically build and us
 Search through the `./build/platform/arch/mode` to the folder that contains the library and Lua file, which can be copied into the module folder.
 There is an install rule for `xmake i` that will install into `~/.textadept/modules/discord_rpc` but only works on Linux.
 
-Note that as Textadept 13 is currently using Lua 5.5rc1, I have checked it into Git. Due to limitations on Windows a small Lua build must be bundled into the DLL, and must be ABI compatible with Textadept's runtime.
-The xrepo package from Lua 5.4 works on other platforms as the API is the same and those builds only require the header files.
+Note that as Textadept 13 is using Lua 5.5.0, I have checked it into Git. Due to limitations on Windows a small Lua build must be bundled into the DLL, and must be ABI compatible with Textadept's runtime.
 
 ## Assets
 
