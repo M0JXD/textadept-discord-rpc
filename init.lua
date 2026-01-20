@@ -1,4 +1,4 @@
--- Copyright 2025 Jamie Drinkell. See LICENSE.
+-- Copyright 2025-2026 Jamie Drinkell. See LICENSE.
 -- Textadept Discord Rich Presence
 
 M = {}

@@ -1,3 +1,6 @@
+-- Copyright 2025-2026 Jamie Drinkell. See LICENSE.
+-- Textadept Discord Rich Presence - Xmake Build
+
 add_rules('mode.release')
 
 -- Please init/update the submodule first!
