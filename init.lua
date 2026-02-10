@@ -3,7 +3,7 @@
 
 M = {}
 M.show_connected = true  -- Display 'DRPC' in buffer_statusbar
-M.private_mode = false  -- Be more vague with details, e.g. no file or folder names
+M.private_mode = true  -- Be more vague with details, e.g. no file or folder names
 M.connect_attempts = 10  -- Maximum tries at startup to to connect
 local attempts = 0
 local is_connected = false  -- To track whether we're connected
