@@ -78,11 +78,15 @@ local function attach_handlers()
 	events.connect(events.RESET_BEFORE, function ()
 		M.rpc.close() ; is_connected = false
 	end)
-	events.connect(events.UPDATE_UI, M.update)
+	--events.connect(events.UPDATE_UI, M.update)
+	events.connect(events.SAVE_POINT_REACHED, M.update)
+	events.connect(events.SAVE_POINT_LEFT, M.update)
 end
 
 local function remove_handlers()
-	events.disconnect(events.UPDATE_UI, M.update)
+	--events.disconnect(events.UPDATE_UI, M.update)
+	events.disconnect(events.SAVE_POINT_REACHED, M.update)
+	events.disconnect(events.SAVE_POINT_LEFT, M.update)
 	events.disconnect(events.RESET_BEFORE, function ()
 		M.rpc.close() ; is_connected = false
 	end)
