@@ -81,6 +81,11 @@ local function attach_handlers()
 	--events.connect(events.UPDATE_UI, M.update)
 	events.connect(events.SAVE_POINT_REACHED, M.update)
 	events.connect(events.SAVE_POINT_LEFT, M.update)
+	if (bfstatbar) then
+		table.insert(bfstatbar, function ()
+			return 'DRPC: '.. (is_connected and '☺' or '☹')
+		end)
+	end
 end
 
 local function remove_handlers()
@@ -94,6 +99,7 @@ local function remove_handlers()
 		M.rpc.close()
 		return nil
 	end, 1)  -- TODO: Is this right?
+	if (bfstatbar) then table.remove(bfstatbar) end
 end
 
 local function update_presence_details()
@@ -180,12 +186,14 @@ function M.update()
 	end
 
 	if (M.show_connected) then
-		if (ui.buffer_statusbar_text:match('DRPC') == nil) then
-			ui.buffer_statusbar_text = ui.buffer_statusbar_text .. (CURSES and '  ' or '    ') ..
-				'DRPC: '.. (is_connected and '☺' or '☹')
-		else
-			local without_status = string.sub(ui.buffer_statusbar_text, 1, -4)
-			ui.buffer_statusbar_text = without_status .. (is_connected and '☺' or '☹')
+		if (not bfstatbar) then
+			if (ui.buffer_statusbar_text:match('DRPC') == nil) then
+				ui.buffer_statusbar_text = ui.buffer_statusbar_text .. (CURSES and '  ' or '    ') ..
+					'DRPC: '.. (is_connected and '☺' or '☹')
+			else
+				local without_status = string.sub(ui.buffer_statusbar_text, 1, -4)
+				ui.buffer_statusbar_text = without_status .. (is_connected and '☺' or '☹')
+			end
 		end
 	end
 end
