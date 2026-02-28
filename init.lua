@@ -70,6 +70,38 @@ M.display_names = {
 	yaml = "YAML"
 }
 
+function string.bst_insert(str, ...)
+	local text, pos, value
+	local spacing = CURSES and '  ' or '    '
+	local _, count = str:gsub(spacing, spacing)
+	count = count + 1
+
+	local arg = table.pack(...)
+	if arg.n == 1 then
+		pos = count + 1
+		value = arg[1]
+	elseif arg.n == 2 then
+		pos = arg[1]
+		value = arg[2]
+	end
+
+	if pos <= 1 then
+		text = value .. spacing .. str
+	elseif pos >= (count + 1) then
+		text = str .. spacing .. value
+	else
+		local c = 0
+		text, count = str:gsub(spacing, function (match)
+			c = c + 1
+			if c == pos - 1 then
+				return match .. value .. match
+			end
+			return match
+		end)
+	end
+	return text
+end
+
 local function attach_handlers()
 	events.connect(events.QUIT, function ()
 		M.rpc.close()
@@ -78,18 +110,18 @@ local function attach_handlers()
 	events.connect(events.RESET_BEFORE, function ()
 		M.rpc.close() ; is_connected = false
 	end)
-	--events.connect(events.UPDATE_UI, M.update)
 	events.connect(events.SAVE_POINT_REACHED, M.update)
 	events.connect(events.SAVE_POINT_LEFT, M.update)
-	if (bfstatbar) then
-		table.insert(bfstatbar, function ()
-			return 'DRPC: '.. (is_connected and '☺' or '☹')
+
+	if M.show_connected then
+		events.connect(events.UPDATE_UI, function (updated)
+			if not updated or updated & 3 == 0 then return end
+			ui.buffer_statusbar_text = ui.buffer_statusbar_text:bst_insert('DRPC: '.. (is_connected and '☺' or '☹'))
 		end)
 	end
 end
 
 local function remove_handlers()
-	--events.disconnect(events.UPDATE_UI, M.update)
 	events.disconnect(events.SAVE_POINT_REACHED, M.update)
 	events.disconnect(events.SAVE_POINT_LEFT, M.update)
 	events.disconnect(events.RESET_BEFORE, function ()
@@ -177,24 +209,12 @@ function M.update()
 		end
 	elseif (M.stats.lastCallback == 2) then
 		ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
-		is_connected = false ; remove_handlers()
+		is_connected = false ; -- remove_handlers()
 		M.rpc.close()
 	elseif (M.stats.lastCallback == 3) then
 		ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
-		is_connected = false ; remove_handlers()
+		is_connected = false ; -- remove_handlers()
 		M.rpc.close()
-	end
-
-	if (M.show_connected) then
-		if (not bfstatbar) then
-			if (ui.buffer_statusbar_text:match('DRPC') == nil) then
-				ui.buffer_statusbar_text = ui.buffer_statusbar_text .. (CURSES and '  ' or '    ') ..
-					'DRPC: '.. (is_connected and '☺' or '☹')
-			else
-				local without_status = string.sub(ui.buffer_statusbar_text, 1, -4)
-				ui.buffer_statusbar_text = without_status .. (is_connected and '☺' or '☹')
-			end
-		end
 	end
 end
 
