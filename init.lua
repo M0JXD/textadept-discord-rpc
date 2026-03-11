@@ -180,7 +180,6 @@ local function update_presence_details()
 	M.presence.largeImageKey = buffer:get_lexer()
 	M.presence.largeImageText = 'Working on a ' .. display_name ..
 		(display_name:find('file') and '.' or ' file.')
-
 end
 
 -- Convenience wrapper that will get current details before calling rpc.update() and update UI
