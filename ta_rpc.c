@@ -1,5 +1,5 @@
 /* Copyright 2025-2026 Jamie Drinkell. See LICENSE. */
-/* Simple Discord RPC wrapper suitable for Textadept */
+/* Simple Discord RPC Lua wrapper suitable for Textadept */
 /* Based on the send_presence example */
 
 #include <stdio.h>
@@ -10,6 +10,8 @@
 #include "lualib.h"
 #include "lauxlib.h"
 #include "discord_rpc.h"
+
+/* #define DEBUG_MESSAGES */
 
 /* This client_id is tied to a Discord app made on my (M0JXD's) dev account for this project.
  * If you'd rather have your own ID change it here.
@@ -27,34 +29,39 @@ static DiscordUser discordUser = {"", "", "", "", ""};
 
 /* ============================== DISCORD HANDLERS ============================== */
 
-/* TODO: Inform Textadept on the status of these */
 static void handleDiscordReady(const DiscordUser* connectedUser) {
-    /*if (!connectedUser->discriminator[0] || strcmp(connectedUser->discriminator, "0") == 0) {*/
-    /*    printf("\nDiscord: connected to user @%s (%s) - %s\n",*/
-    /*           connectedUser->username,*/
-    /*           connectedUser->globalName,*/
-    /*           connectedUser->userId);*/
-    /*}*/
-    /*else {*/
-    /*    printf("\nDiscord: connected to user %s#%s (%s) - %s\n",*/
-    /*           connectedUser->username,*/
-    /*           connectedUser->discriminator,*/
-    /*           connectedUser->globalName,*/
-    /*           connectedUser->userId);*/
-    /*}*/
+#ifdef DEBUG_MESSAGES
+    if (!connectedUser->discriminator[0] || strcmp(connectedUser->discriminator, "0") == 0) {
+        printf("\nDiscord: connected to user @%s (%s) - %s\n"
+               connectedUser->username
+               connectedUser->globalName
+               connectedUser->userId);
+    }
+    else {
+        printf("\nDiscord: connected to user %s#%s (%s) - %s\n"
+               connectedUser->username
+               connectedUser->discriminator
+               connectedUser->globalName
+               connectedUser->userId);
+    }
+#endif
     memcpy(&discordUser, connectedUser, sizeof(DiscordUser));
     discordError.lastCallback = 1;
 }
 
 static void handleDiscordDisconnected(int errcode, const char* message) {
-    /*printf("Disconnected (%d: %s)\n", errcode, message);*/
+#ifdef DEBUG_MESSAGES
+    printf("Disconnected (%d: %s)\n", errcode, message);
+#endif
     discordError.lastCallback = 2;
     discordError.errcode = errcode;
     strcpy(discordError.errorDetails, message);
 }
 
 static void handleDiscordError(int errcode, const char* message) {
-    /*printf("Error (%d: %s)\n", errcode, message);*/
+#ifdef DEBUG_MESSAGES
+    printf("Error (%d: %s)\n", errcode, message);
+#endif
     discordError.lastCallback = 3;
     discordError.errcode = errcode;
     strcpy(discordError.errorDetails, message);
