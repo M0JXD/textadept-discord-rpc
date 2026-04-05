@@ -1,5 +1,6 @@
 -- Copyright 2025-2026 Jamie Drinkell. See LICENSE.
 -- Textadept Discord Rich Presence - Xmake Build
+-- LuaFormatter off
 
 add_rules('mode.release')
 
@@ -9,16 +10,14 @@ package('DiscordRPC')
 	set_sourcedir(path.join(os.scriptdir(), 'extern/discord-rpc'))
 	-- add_urls('https://github.com/harmonytf/discord-rpc.git')
 	-- Add the required system library for Windows Registry functions
-	if (is_plat('windows')) then
-		add_syslinks('Advapi32')
-	end
-	on_install(function (package)
+	if is_plat('windows') then add_syslinks('Advapi32') end
+	on_install(function(package)
 		local configs = {}
 		table.insert(configs, '-DCMAKE_BUILD_TYPE=' .. (package:debug() and 'Debug' or 'Release'))
 		table.insert(configs, '-DBUILD_SHARED_LIBS=' .. (package:config('shared') and 'ON' or 'OFF'))
 		import('package.tools.cmake').install(package, configs)
 	end)
-	on_test(function (package)
+	on_test(function(package)
 		assert(package:has_cfuncs('Discord_Initialize', {includes = 'discord_rpc.h'}))
 	end)
 package_end()
@@ -31,38 +30,40 @@ target('discordrpc')
 	add_packages('DiscordRPC')
 	add_includedirs('$(scriptdir)/extern/lua-5.5.0/src')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
-	add_configfiles('init.lua', {onlycopy = true})
+	add_configfiles('init.lua', 'names.lua', {onlycopy = true})
 
-	if (is_plat('windows')) then
+	if is_plat('windows') then
 		-- We need to embed the minimal copy of Lua
 		add_defines('LUA_BUILD_AS_DLL', 'LUA_LIB')
 		local base = 'extern/lua-5.5.0/src/'
-		add_files(base..'*.c')
+		add_files(base .. '*.c')
 		remove_files(
-			base..'lua.c',
-			base..'luac.c',
-			base..'linit.c',
-			base..'lib.c',
-			base..'lutf8lib.c',
-			base..'ltablib.c',
-			base..'lstrlib.c',
-			base..'loslib.c',
-			base..'loadlib.c',
-			base..'lmathlib.c',
-			base..'liolib.c',
-			base..'ldblib.c',
-			base..'lcorolib.c',
-			base..'lbaselib.c'
+			base .. 'lua.c',
+			base .. 'luac.c',
+			base .. 'linit.c',
+			base .. 'lib.c',
+			base .. 'lutf8lib.c',
+			base .. 'ltablib.c',
+			base .. 'lstrlib.c',
+			base .. 'loslib.c',
+			base .. 'loadlib.c',
+			base .. 'lmathlib.c',
+			base .. 'liolib.c',
+			base .. 'ldblib.c',
+			base .. 'lcorolib.c',
+			base .. 'lbaselib.c'
 		)
-	elseif (is_plat('linux')) then
+	elseif is_plat('linux') then
 		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
 		set_filename('discordrpc.so')
-	elseif (is_plat('macosx')) then
+	elseif is_plat('macosx') then
 		-- TODO: Might need to set some flags (-undefined dynamic_lookup)
 		set_filename('discordrpcosx.so')
 	end
 
-	on_install(function (target)
+	on_install(function(target)
 		-- TODO: Fix for Windows? Windows has annoying permissions and copy behaviour
-		os.cp(target:targetdir()..'/**', '~/.textadept/modules/discord_rpc')
+		os.cp(target:targetdir() .. '/**', '~/.textadept/modules/discord_rpc')
 	end)
+
+-- LuaFormatter on
