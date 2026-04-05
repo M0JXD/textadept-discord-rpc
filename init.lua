@@ -4,7 +4,7 @@
 local M = {mt = {}}
 M.show_connected = true -- Display 'DRPC' status in buffer_statusbar
 M.private = true -- Be more vague with details, e.g. no file or folder names
-M.attempts = 7 -- Maximum allowed attempts to connect
+M.attempts = 20 -- Maximum allowed attempts to connect
 
 local attempts = 0 -- Current attempt number
 local last_action = 'confused at ' -- Last build/run/test action
@@ -171,10 +171,10 @@ function M.update()
 	if M.stats.lastCallback == 0 then
 		-- Discord hasn't run any handlers yet, try sending another update
 		is_connected = false
+		ui.statusbar_text = 'Attempting to connect to Discord...'
 		if attempts ~= M.attempts then
 			attempts = attempts + 1
-			timeout(0.3, function()
-				ui.statusbar_text = 'Attempting to connect to Discord...'
+			timeout(0.4, function()
 				M.update()
 			end)
 		else
@@ -203,11 +203,14 @@ end
 
 -- Connect to Discord - not suitable for calling from init.lua
 function M.connect()
-	attempts = 0
-	M.rpc.init()
+	M.rpc.close()
 	M.presence.startTimestamp = os.time()
-	M.update()
 	if not handlers then attach_handlers() end
+	attempts = 0
+	timeout(0.3, function()
+		M.rpc.init()
+		M.update()
+	end)
 end
 
 -- Allow user to 'start' RPC in their init.lua
