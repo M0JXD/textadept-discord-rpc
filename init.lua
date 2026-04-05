@@ -207,7 +207,7 @@ function M.connect()
 	M.presence.startTimestamp = os.time()
 	if not handlers then attach_handlers() end
 	attempts = 0
-	timeout(0.3, function()
+	timeout(0.4, function()
 		M.rpc.init()
 		M.update()
 	end)
