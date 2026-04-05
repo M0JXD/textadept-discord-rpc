@@ -1,6 +1,6 @@
 # Textadept Discord RPC
 
-Simple Discord Rich Presence for Textadept. Requires Textadept 13+.
+Discord Rich Presence for Textadept. Requires Textadept 13+.
 
 ![screenshot](assets/screenshot.png)
 
@@ -8,12 +8,12 @@ Install this module by copying it into your *~/.textadept/modules/* directory or
 *modules/* directory, and then putting the following in your *~/.textadept/init.lua*:
 
 ```lua
-local discord_rpc = require('discord_rpc')
-discord_rpc.init()
+require('discord_rpc')()
 ```
 
-Discord must be running before you start Textadept. Your Discord status will show information and images for the current buffer you are working on.
-You can set a privacy mode that limits the details with `discord_rpc.private_mode = true`.
+Discord needs to be running before you start Textadept, or else it will fail to connect.
+Your Discord status will show information for the current buffer you are working on.
+By default it is set to privacy mode which limits the details, but it can be disabled with `discord_rpc.private = false`.
 
 This is untested on macOS and I can't offer any builds for that platform. It will very likely need some work before being functional there.
 
@@ -39,8 +39,7 @@ Note that as Textadept 13 is using Lua 5.5.0, I have checked it into Git. Due to
 
 ## Assets
 
-Assets and their keys are tied to the Discord "app" that can be accessed/updated with a developer account. The application_id signifies to Discord which app is running and is hard-coded into shared library.
-I have set the assets to have the same names as Textadept's lexers, the icons are from the VSCord project. The assets are checked into the repo for completion's sake,  you do not need a local copy.
+Assets and their keys are tied to the Discord "app" that can be accessed/updated with a developer account. The application_id signifies to Discord which app is running and is hard-coded into shared library. I have set the assets to have the same names as Textadept's lexers, the icons are from the VSCord project. The assets are checked into the repo for completion's sake,  you do not need a local copy.
 
 I have made a Discord Developer Team for this (and possibly future) Discord projects. If you would like to be added for direct access to the application_id or adjusting the assets please open an issue with the required Discord details so I can add you. In the spirit of of being open when asking you to share such information, my Discord username is (unsurprisingly) m0jxd.
 
