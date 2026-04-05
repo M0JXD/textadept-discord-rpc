@@ -19,7 +19,7 @@ elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
 	lib = lib .. 'arm' -- TODO: Can Discord/ARMCord even support this?
 end
 M.rpc = require(lib)
-M.display = require('discord_rpc.names')
+M.edge_names = require('discord_rpc.names')
 
 -- LuaFormatter off
 M.stats = {
@@ -122,15 +122,15 @@ local function update_presence_details()
 		old_lexer = lexer_name
 	end
 
-	if M.display.names[lexer_name] then
-		display_name = M.display.names[lexer_name]
+	if M.edge_names.names[lexer_name] then
+		display_name = M.edge_names.names[lexer_name]
 	else -- Capitalise it
 		display_name = lexer_name:sub(1, 1):upper() .. lexer_name:sub(2)
 	end
 
 	local filestate = ' file.'
 	if M.private then
-		filestate = (M.display.an[lexer_name] and 'an ' or 'a ') .. display_name ..
+		filestate = (M.edge_names.an[lexer_name] and 'an ' or 'a ') .. display_name ..
 			(display_name:find('file') and '.' or filestate)
 	else
 		if buffer.filename then
@@ -159,7 +159,7 @@ local function update_presence_details()
 	end
 
 	M.presence.largeImageKey = buffer:get_lexer()
-	M.presence.largeImageText = 'Working on ' .. (M.display.an[lexer_name] and 'an ' or 'a ') ..
+	M.presence.largeImageText = 'Working on ' .. (M.edge_names.an[lexer_name] and 'an ' or 'a ') ..
 		display_name .. (display_name:find('file') and '.' or ' file.')
 end
 
@@ -240,7 +240,7 @@ local discord_menu = {
 				'Username: ' .. M.stats.username .. '\n' ..
 				'Global Name: ' .. M.stats.globalName .. '\n' ..
 				'User ID: ' .. M.stats.userId .. '\n' ..
-				'Discriminator' .. M.stats.discriminator .. '\n' ..
+				'Discriminator: ' .. M.stats.discriminator .. '\n' ..
 				'Last Callback: ' .. M.stats.lastCallback .. '\n' ..
 				'Error Code: ' .. M.stats.errcode .. '\n' ..
 				'Error Message: ' .. M.stats.errorDetails .. '\n' ..
