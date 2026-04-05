@@ -17,7 +17,7 @@ By default it is set to privacy mode which limits the details, but it can be dis
 
 ***Notes:***
 - Discord needs to be running before you start Textadept, this seems to be a limitation of the library.
-- Due to the library's internal retry mechanism, resetting Textadept can fail to reconnect. I have attempted to mitigate this but if you do a lot of you may need to reconnect manually if it fails
+- Due to the library's internal retry mechanism, resetting Textadept can fail to reconnect. I have attempted to mitigate this but if you reset a lot of you may need to reconnect manually if it fails.
 - This is untested on macOS. It will very likely need some work before being functional there.
 
 ## About
