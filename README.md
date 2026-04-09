@@ -12,6 +12,7 @@ require('discord_rpc')()
 ```
 
 Your Discord status will show information for the current buffer you are working on.
+If you don't want Textadept to connect automatically at startup, just require the module without calling it and connect using using the option under the *Help/Discord RPC* menu.
 By default it is set to privacy mode which limits the details, but it can be disabled with `discord_rpc.private = false`.
 
 
