@@ -13,9 +13,9 @@ local handlers = false -- Are handlers connected?
 local old_lexer = 'Untitled' -- To track what the output buffer (probably) reflects
 
 local lib = 'discord_rpc.discordrpc'
-if OSX then
+if OS == 'macos' then
 	lib = lib .. 'osx'
-elseif LINUX and io.popen('uname -m'):read() == 'aarch64' then
+elseif OS == 'linux' and io.popen('uname -m'):read() == 'aarch64' then
 	lib = lib .. 'arm' -- TODO: Can Discord/ARMCord even support this?
 end
 M.rpc = require(lib)
@@ -39,7 +39,7 @@ M.presence = {
 	startTimestamp = os.time(),
 	endTimestamp = 0,
 	smallImageKey = 'textadept',
-	smallImageText = 'Textadept ' .. (QT and '(Qt)' or GTK and '(GTK)' or '(curses)'),
+	smallImageText = 'Textadept ' .. (UI == 'qt' and '(Qt)' or UI == 'gtk' and '(GTK)' or '(Terminal)'),
 	largeImageKey = '',
 	largeImageText = ''
 	-- TODO: Add Party/Match/Secret and Buttons options?
@@ -48,7 +48,7 @@ M.presence = {
 
 function string.bst_insert(str, ...)
 	local text, pos, value
-	local spacing = CURSES and '  ' or '    '
+	local spacing = UI == 'terminal' and '  ' or '    '
 	local _, count = str:gsub(spacing, spacing)
 	count = count + 1
 
