@@ -36,8 +36,8 @@ The library is built with [Xmake](https://xmake.io/). Before anything, after clo
 
 You can then issue the build with `xmake`.
 Xmake will probably ask you about building the DiscordRPC library first, which you will need to do.
-Search through the `./build/platform/arch/mode` to the folder that contains the library and Lua file, which can be copied into the module folder.
-There is an install rule for `xmake i` that will install into `~/.textadept/modules/discord_rpc`, but only works on Linux.
+Search through the *./build/platform/arch/mode* to the folder that contains the library and Lua file, which can be copied into the module folder.
+There is an install rule for `xmake i` that will install into *~/.textadept/modules/discord_rpc*.
 
 Note due to limitations on Windows, a small Lua build is bundled into the DLL.
 
