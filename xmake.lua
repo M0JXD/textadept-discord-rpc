@@ -28,14 +28,14 @@ target('discordrpc')
 	set_kind('shared')
 	add_files('ta_rpc.c')
 	add_packages('DiscordRPC')
-	add_includedirs('$(scriptdir)/extern/lua-5.5.0/src')
+	add_includedirs('$(scriptdir)/extern/lua/')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
 	add_configfiles('init.lua', 'names.lua', {onlycopy = true})
 
 	if is_plat('windows') then
 		-- We need to embed the minimal copy of Lua
 		add_defines('LUA_BUILD_AS_DLL', 'LUA_LIB')
-		local base = 'extern/lua-5.5.0/src/'
+		local base = 'extern/lua/'
 		add_files(base .. '*.c')
 		remove_files(
 			base .. 'lua.c',
