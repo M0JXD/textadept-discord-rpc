@@ -174,9 +174,7 @@ function M.update()
 		ui.statusbar_text = 'Attempting to connect to Discord...'
 		if attempts ~= M.attempts then
 			attempts = attempts + 1
-			timeout(0.4, function()
-				M.update()
-			end)
+			timeout(0.4, function() M.update() end)
 		else
 			ui.statusbar_text = 'Could not connect to Discord.'
 			M.close() -- Just in case it's some weird connection issue
@@ -184,14 +182,16 @@ function M.update()
 	elseif M.stats.lastCallback == 1 then
 		if is_connected == false then
 			ui.statusbar_text = 'Discord: Connected to ' .. M.stats.globalName .. '.'
-			is_connected = true;
+			is_connected = true
 		end
 	elseif M.stats.lastCallback == 2 then
 		ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
-		is_connected = false; -- M.close()
+		is_connected = false
+		-- M.close()
 	elseif M.stats.lastCallback == 3 then
 		ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
-		is_connected = false; -- M.close()
+		is_connected = false
+		-- M.close()
 	end
 end
 
