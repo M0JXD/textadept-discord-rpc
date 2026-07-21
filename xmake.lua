@@ -50,7 +50,8 @@ target('discordrpc')
 			base .. 'liolib.c',
 			base .. 'ldblib.c',
 			base .. 'lcorolib.c',
-			base .. 'lbaselib.c'
+			base .. 'lbaselib.c',
+			base .. 'onelua.c'
 		)
 	elseif is_plat('linux') then
 		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
@@ -61,9 +62,10 @@ target('discordrpc')
 	end
 
 	on_install(function(target)
-		-- TODO: Fix for Windows? Windows has annoying permissions and copy behaviour
-		os.mkdir('~/.textadept/modules/discord_rpc')
-		os.cp(target:targetdir() .. '/**', '~/.textadept/modules/discord_rpc')
+		local home = is_plat('windows') and os.getenv('USERPROFILE') or os.getenv('HOME')
+		local dir = home .. '/.textadept/modules/discord_rpc'
+		os.mkdir(dir)
+		os.cp(target:targetdir() .. '/**', dir)
 	end)
 
 -- LuaFormatter on
