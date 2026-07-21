@@ -1,3 +1,6 @@
 [submodule "discord-rpc"]
 	path = extern/discord-rpc
 	url = https://github.com/harmonytf/discord-rpc.git
+[submodule "lua"]
+	path = extern/lua
+	url = https://github.com/lua/lua.git
