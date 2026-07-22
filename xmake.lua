@@ -8,8 +8,11 @@ add_rules('mode.release')
 package('DiscordRPC')
 	add_deps('cmake')
 	set_sourcedir(path.join(os.scriptdir(), 'extern/discord-rpc'))
-	-- Add the required system library for Windows Registry functions
+	-- Add required system libraries
 	if is_plat('windows') then add_syslinks('Advapi32') end
+	if is_plat('macosx') then
+		add_frameworks('Foundation', 'CoreFoundation', 'CoreServices')
+	end
 	on_install(function(package)
 		local configs = {}
 		table.insert(configs, '-DCMAKE_BUILD_TYPE=' .. (package:debug() and 'Debug' or 'Release'))
@@ -57,7 +60,7 @@ target('discordrpc')
 		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
 		set_filename('discordrpc.so')
 	elseif is_plat('macosx') then
-		-- TODO: Might need to set some flags (-undefined dynamic_lookup)
+		add_shflags('-undefined', 'dynamic_lookup', {force = true})
 		set_filename('discordrpcosx.so')
 	end
 
