@@ -57,8 +57,11 @@ target('discordrpc')
 			base .. 'onelua.c'
 		)
 	elseif is_plat('linux') then
-		-- TODO: Rename for ARM? Check if ARMCord supports RPC?
-		set_filename('discordrpc.so')
+		if is_arch("x86_64", "i386") then
+			set_filename('discordrpc.so')
+		else
+			set_filename('discordrpcarm.so')
+		end
 	elseif is_plat('macosx') then
 		add_shflags('-undefined', 'dynamic_lookup', {force = true})
 		set_filename('discordrpcosx.so')
