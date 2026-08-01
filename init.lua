@@ -16,7 +16,7 @@ local lib = 'discord_rpc.discordrpc'
 if OS == 'macos' then
 	lib = lib .. 'osx'
 elseif OS == 'linux' and io.popen('uname -m'):read() == 'aarch64' then
-	lib = lib .. 'arm' -- TODO: Can Discord/ARMCord even support this?
+	lib = lib .. 'arm'
 end
 M.rpc = require(lib)
 M.edge_names = require('discord_rpc.names')
