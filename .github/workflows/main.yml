@@ -8,6 +8,10 @@ jobs:
     - uses: xmake-io/github-action-setup-xmake@v1
     - run: git submodule update --init --recursive
     - run: xmake
+    - uses: actions/upload-artifact@v4
+      with:
+        name: windows
+        path: build/*
       
   linux:
     runs-on: ubuntu-24.04
@@ -16,6 +20,10 @@ jobs:
     - uses: xmake-io/github-action-setup-xmake@v1
     - run: git submodule update --init --recursive
     - run: xmake
+    - uses: actions/upload-artifact@v4
+      with:
+        name: linux
+        path: build/*
 
   linux-arm:
     runs-on: ubuntu-22.04-arm
@@ -24,6 +32,10 @@ jobs:
     - uses: xmake-io/github-action-setup-xmake@v1
     - run: git submodule update --init --recursive
     - run: xmake
+    - uses: actions/upload-artifact@v4
+      with:
+        name: linux-arm
+        path: build/*
 
   macos:
     runs-on: macos-26
@@ -32,3 +44,7 @@ jobs:
     - uses: xmake-io/github-action-setup-xmake@v1
     - run: git submodule update --init --recursive
     - run: xmake
+    - uses: actions/upload-artifact@v4
+      with:
+        name: macos
+        path: build/*
