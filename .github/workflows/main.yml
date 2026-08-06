@@ -17,17 +17,15 @@ jobs:
     - run: xmake i
 
   linux-arm:
-    runs-on:
-      - ubuntu-22.04-arm
-      steps:
+    runs-on: ubuntu-22.04-arm
+    steps:
     - uses: xmake-io/github-action-setup-xmake@v1
     - run: xmake
     - run: xmake i
 
   macos:
-    runs-on:
-      - macos-26
-      steps:
+    runs-on: macos-26
+    steps:
     - uses: xmake-io/github-action-setup-xmake@v1
     - run: xmake
     - run: xmake i
