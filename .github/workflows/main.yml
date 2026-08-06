@@ -1,4 +1,37 @@
-name: setup xmake
-  # You may pin to the exact commit or the version.
-  # uses: xmake-io/github-action-setup-xmake@3a1a5dddfc7fa625d9a698738334bf55655a861a
-  uses: xmake-io/github-action-setup-xmake@v1
+name: build
+on: push
+jobs:
+  windows:
+    runs-on:
+      - windows-latest
+    steps:
+    - uses: xmake-io/github-action-setup-xmake@v1
+    - run: xmake
+    - run: xmake i
+      
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: xmake-io/github-action-setup-xmake@v1
+    - run: xmake
+    - run: xmake i
+
+  linux-arm:
+    runs-on:
+      - ubuntu-22.04-arm
+      steps:
+    - uses: xmake-io/github-action-setup-xmake@v1
+    - run: xmake
+    - run: xmake i
+
+  macos:
+    runs-on:
+      - macos-26
+      steps:
+    - uses: xmake-io/github-action-setup-xmake@v1
+    - run: xmake
+    - run: xmake i
+
+    
+
+  
