@@ -91,8 +91,7 @@ elseif OS == 'linux' and io.popen('uname -m'):read() == 'aarch64' then
 end
 M.rpc = require(lib)
 
---- Lexer name edge case lists
--- @field edge_names
+--- Edge case lists for lexer names that can't be capitalised or should be described with 'an'.
 M.edge_names = require('discord_rpc.edge_names')
 
 -- LuaFormatter off

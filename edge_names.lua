@@ -1,4 +1,5 @@
 -- Copyright 2025-2026 Jamie Drinkell. See LICENSE.
+
 --- Textadept Discord Rich Presence Name Edge Cases
 -- @module edge_names
 local M = {}

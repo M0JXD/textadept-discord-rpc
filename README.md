@@ -85,7 +85,7 @@ Do not call from init.lua. Call the module instead to connect automatically at s
 <a id="discord_rpc.edge_names"></a>
 ## `discord_rpc.edge_names`
 
-Lexer name edge case lists
+Edge case lists for lexer names that can't be capitalised or should be described with 'an'.
 
 <a id="discord_rpc.presence"></a>
 ## `discord_rpc.presence`
