@@ -1,16 +1,87 @@
 -- Copyright 2025-2026 Jamie Drinkell. See LICENSE.
--- Textadept Discord Rich Presence
 
+--- Discord Rich Presence for Textadept.
+-- ![screenshot](assets/screenshot.png)
+--
+-- Install this module by copying it into your *~/.textadept/modules/* directory or Textadept's
+-- *modules/* directory, and then putting the following in your *~/.textadept/init.lua*:
+--
+-- ```lua
+-- require('discord_rpc')()
+-- ```
+--
+-- There will be a "Help > Discord RPC" menu. On startup Textadept will try to connect to Discord.
+-- Your Discord status will show information for the current buffer you are working on.
+-- You can set how detailed this information is with `discord_rpc.private`.
+-- A buffer statusbar section will show an emoji representing connection status, but can be
+-- disabled with `discord_rpc.show_connected`.
+-- If you don't want to connect automatically at startup, require the module without calling it,
+-- and connect using the menu option.
+--
+-- #### Notes
+--
+-- - Your Discord client needs to be running before Textadept is started.
+-- - Resetting Textadept frequently and rapidly can cause connection failures.
+--
+-- ## About
+--
+-- RPC is achieved via @harmonytf's fork of Discord's unmaintained RPC libary.
+--
+-- Whilst the now recommend way to implement RPC is to use the
+-- [Discord Social SDK](https://discord.com/developers/docs/discord-social-sdk/overview),
+-- to even download it requires stating details about your
+-- "Company Name, Team Location, Role" etc. that simply don't apply for open source hobby projects.
+-- Please petition Discord to provide
+-- [a better solution](https://github.com/discord/discord-rpc/issues/382#issuecomment-3620635979)
+-- for open source applications to integrate with RPC.
+--
+-- ## Building
+--
+-- The library is built with [Xmake](https://xmake.io/).
+-- Before anything, after cloning this repo ensure the submodules are fetched:
+--
+-- `git submodule update --init --recursive`
+--
+-- You can then issue the build with `xmake`.
+-- Xmake will ask you about building the DiscordRPC library first, which you will need to confirm.
+-- `xmake i` will install the module you built into *~/.textadept/modules/discord_rpc*.
+--
+-- ## Assets
+--
+-- Assets and their keys are tied to the Discord "app" that can be updated with a developer account.
+-- On the app page, assets are set to the same name as Textadept's lexers. Icons are from the
+-- VSCord project, and checked into the repo for completion's sake. A local copy is not required.
+--
+-- I have made a Discord Developer Team for this project. If you would like to be added please open
+-- an issue or contact me (m0jxd) via Discord with the required details.
+--
+-- ## Thanks
+--
+-- - The icons are from the VSCord project.
+-- - @orbitalquark for Textadept.
+-- - @harmonytf for the Discord RPC library fork.
+--
+-- @module discord_rpc
 local M = {mt = {}}
-M.show_connected = true -- Display 'DRPC' status in buffer_statusbar
-M.private = true -- Be more vague with details, e.g. no file or folder names
-M.attempts = 20 -- Maximum allowed attempts to connect
+
+---  Display 'DRPC' status in buffer_statusbar.
+-- The default value is 'true'.
+M.show_connected = true
+--- Whether to use a privacy mode that only states file types instead of their actual names.
+-- The default value is `true`.
+M.private = true
+--- Maximum allowed attempts to connect to Discord.
+-- The default value is `20`.
+M.attempts = 20
 
 local attempts = 0 -- Current attempt number
 local last_action = 'confused at ' -- Last build/run/test action
 local is_connected = false -- Are we connected to Discord?
 local handlers = false -- Are handlers connected?
 local old_lexer = 'Untitled' -- To track what the output buffer (probably) reflects
+
+--- The base Discord RPC library object.
+-- @field rpc
 
 local lib = 'discord_rpc.discordrpc'
 if OS == 'macos' then
@@ -19,19 +90,34 @@ elseif OS == 'linux' and io.popen('uname -m'):read() == 'aarch64' then
 	lib = lib .. 'arm'
 end
 M.rpc = require(lib)
-M.edge_names = require('discord_rpc.names')
+
+--- Lexer name edge case lists
+-- @field edge_names
+M.edge_names = require('discord_rpc.edge_names')
 
 -- LuaFormatter off
+
+--- Status fields received from RPC.
 M.stats = {
-	--username
-	--globalName
-	--userId
-	--discriminator
-	--lastCallback
-	--errcode
-	--errorDetails
+	username,-- Username of connected RPC user.
+	globalName, -- Global Name of connected RPC user.
+	userId, -- ID of connected RPC user.
+	discriminator, -- Discord's discriminator for the RPC connection.
+	lastCallback, -- Last callback called by underlying library.
+	errcode, -- Last error code that occured.
+	errorDetails, -- Details for last error code.
 }
 
+--- Status fields sent to RPC.
+-- @field send_presence Whether to send presence to Discord.
+-- @field state Phrase for current user action.
+-- @field details Further details on current user action.
+-- @field startTimestamp Start time for this activity.
+-- @field endTimestamp End time for this activity.
+-- @field smallImageKey Key name for the small image.
+-- @field smallImageText Hover text for the small image.
+-- @field largeImageKey Key name for the large image.
+-- @field largeImageText Hover text for the large image.
 M.presence = {
 	send_presence = true,
 	state = '',
@@ -39,13 +125,16 @@ M.presence = {
 	startTimestamp = os.time(),
 	endTimestamp = 0,
 	smallImageKey = 'textadept',
-	smallImageText = 'Textadept ' .. (UI == 'qt' and '(Qt)' or UI == 'gtk' and '(GTK)' or '(Terminal)'),
+	smallImageText = 'Textadept ' .. (UI == 'qt' and '(Qt)' or UI == 'gtk' and '(GTK)'
+		or '(Terminal)'),
 	largeImageKey = '',
 	largeImageText = ''
-	-- TODO: Add Party/Match/Secret and Buttons options?
 }
+-- TODO: Add Party/Match/Secret and Buttons options?
+
 -- LuaFormatter on
 
+-- Insert entries into the buffer statusbar
 function string.bst_insert(str, ...)
 	local text, pos, value
 	local spacing = UI == 'terminal' and '  ' or '    '
@@ -76,12 +165,14 @@ function string.bst_insert(str, ...)
 	return text
 end
 
+--- UPDATE_UI callback to show discord status in the buffer statusbar.
 local function discord_status(updated)
 	if not updated or updated & 3 == 0 then return end
 	ui.buffer_statusbar_text = ui.buffer_statusbar_text:bst_insert('DRPC: ' ..
 		(is_connected and '☺' or '☹'))
 end
 
+--- Attach handlers used in RPC.
 local function attach_handlers()
 	events.connect(events.QUIT, M.close)
 	events.connect(events.RESET_BEFORE, M.close)
@@ -95,6 +186,7 @@ local function attach_handlers()
 	handlers = true
 end
 
+--- Remove handlers used in RPC.
 local function remove_handlers()
 	events.disconnect(events.QUIT, M.close)
 	events.disconnect(events.RESET_BEFORE, M.close)
@@ -108,7 +200,7 @@ local function remove_handlers()
 	handlers = false
 end
 
--- Update details in M.presence
+--- Update details in presence table with Textadept's current status.
 local function update_presence_details()
 	local task = buffer.modify and 'editing ' or 'viewing '
 	local display_name
@@ -163,7 +255,7 @@ local function update_presence_details()
 		display_name .. (display_name:find('file') and '.' or ' file.')
 end
 
--- Get current details then update RPC and UI
+--- Updates presence details, sends them over RPC, receives RPC status and updates UI accordingly.
 function M.update()
 	update_presence_details()
 	M.stats = M.rpc.update(M.presence)
@@ -195,13 +287,15 @@ function M.update()
 	end
 end
 
+--- Closes down RPC connection and removes handlers.
 function M.close()
 	is_connected = false
 	if handlers then remove_handlers() end
 	M.rpc.close()
 end
 
--- Connect to Discord - not suitable for calling from init.lua
+--- Connects to RPC and attaches handlers.
+-- Do not call from init.lua. Call the module instead to connect automatically at startup.
 function M.connect()
 	M.rpc.close()
 	M.presence.startTimestamp = os.time()
@@ -217,10 +311,9 @@ end
 M.mt.__call = function()
 	events.connect(events.INITIALIZED, M.connect)
 end
-M.mt.__metatable = 'Don\'t change Discord RPC Metatable'
 setmetatable(M, M.mt)
 
--- Just always connect these
+-- These are low overhead, always connect.
 events.connect(events.BUILD_OUTPUT, function() last_action = 'building ' end)
 events.connect(events.COMPILE_OUTPUT, function() last_action = 'compiling ' end)
 events.connect(events.RUN_OUTPUT, function() last_action = 'running ' end)
