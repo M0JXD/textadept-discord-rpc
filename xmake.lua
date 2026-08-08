@@ -4,7 +4,7 @@
 
 add_rules('mode.release')
 
--- Please init/update the submodule first!
+-- Submodules must be fetched first.
 package('DiscordRPC')
 	add_deps('cmake')
 	set_sourcedir(path.join(os.scriptdir(), 'extern/discord-rpc'))
@@ -32,7 +32,7 @@ target('discordrpc')
 	add_packages('DiscordRPC')
 	add_includedirs('$(scriptdir)/extern/lua/')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
-	add_configfiles('init.lua', 'names.lua', {onlycopy = true})
+	add_configfiles('init.lua', 'edge_names.lua', {onlycopy = true})
 
 	if is_plat('windows') then
 		-- We need to embed the minimal copy of Lua
@@ -73,5 +73,25 @@ target('discordrpc')
 		os.mkdir(dir)
 		os.cp(target:targetdir() .. '/**', dir)
 	end)
+
+task('gen_readme')
+	on_run(function()
+		import("net.http")
+		http.download(
+			'https://raw.githubusercontent.com/orbitalquark/textadept/refs/heads/default/scripts/markdowndoc.lua',
+			'markdowndoc.lua'
+		)
+		local output =
+			os.iorun('ldoc --filter markdowndoc.ldoc init.lua -- --title="Textadept Discord RPC" --single')
+		output = output:gsub("^%s*(.-)%s*$", "%1") .. '\n'
+		io.writefile("README.md", output)
+		os.rm('markdowndoc.lua')
+	end)
+
+	set_menu{
+		usage = 'xmake gen_readme',
+		description = 'Generate README.md from init.lua LDoc.',
+		options = {}
+	}
 
 -- LuaFormatter on
