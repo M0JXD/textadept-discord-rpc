@@ -5,7 +5,8 @@
 local M = {}
 
 -- LuaFormatter off
---- Lexer names that are not suitable for first letter capitalisation.
+
+--- Array of lexer names that are not suitable for first letter capitalisation.
 M.names = {
 	applescript = 'AppleScript',
 	asm = 'ASM',
@@ -36,7 +37,7 @@ M.names = {
 	yaml = 'YAML'
 }
 
---- Lexers that should use 'an' instead of 'a' to refer to the file.
+--- Array of lexers that should use 'an' instead of 'a' to refer to the file.
 M.an = {
 	actionscript = true,
 	ada = true,

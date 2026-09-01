@@ -87,21 +87,25 @@ Do not call from init.lua. Call the module instead to connect automatically at s
 
 Edge case lists for lexer names that can't be capitalised or should be described with 'an'.
 
+Fields:
+- `names`:  Array of lexer names that are not suitable for first letter capitalisation.
+- `an`:  Array of lexers that should use 'an' instead of 'a' to refer to the file.
+
 <a id="discord_rpc.presence"></a>
 ## `discord_rpc.presence`
 
 Status fields sent to RPC.
 
 Fields:
-- `send_presence`:  Whether to send presence to Discord.
-- `state`:  Phrase for current user action.
-- `details`:  Further details on current user action.
-- `startTimestamp`:  Start time for this activity.
-- `endTimestamp`:  End time for this activity.
-- `smallImageKey`:  Key name for the small image.
-- `smallImageText`:  Hover text for the small image.
-- `largeImageKey`:  Key name for the large image.
-- `largeImageText`:  Hover text for the large image.
+- `send_presence`: Whether to send presence to Discord.
+- `state`: Phrase for current user action.
+- `details`: Further details on current user action.
+- `startTimestamp`: Start time for this activity.
+- `endTimestamp`: End time for this activity.
+- `smallImageKey`: Key name for the small image.
+- `smallImageText`: Hover text for the small image.
+- `largeImageKey`: Key name for the large image.
+- `largeImageText`: Hover text for the large image.
 
 <a id="discord_rpc.private"></a>
 ## `discord_rpc.private`

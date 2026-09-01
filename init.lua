@@ -62,7 +62,7 @@
 -- - @harmonytf for the Discord RPC library fork.
 --
 -- @module discord_rpc
-local M = {mt = {}}
+local M = {}
 
 ---  Display 'DRPC' status in buffer_statusbar.
 -- The default value is 'true'.
@@ -79,6 +79,7 @@ local last_action = 'confused at ' -- Last build/run/test action
 local is_connected = false -- Are we connected to Discord?
 local handlers = false -- Are handlers connected?
 local old_lexer = 'Untitled' -- To track what the output buffer (probably) reflects
+local mt = {}
 
 --- The base Discord RPC library object.
 -- @field rpc
@@ -92,48 +93,39 @@ end
 M.rpc = require(lib)
 
 --- Edge case lists for lexer names that can't be capitalised or should be described with 'an'.
+-- @table edge_names
+-- @field names Array of lexer names that are not suitable for first letter capitalisation.
+-- @field an Array of lexers that should use 'an' instead of 'a' to refer to the file.
 M.edge_names = require('discord_rpc.edge_names')
-
--- LuaFormatter off
 
 --- Status fields received from RPC.
 M.stats = {
-	username,-- Username of connected RPC user.
+	username, -- Username of connected RPC user.
 	globalName, -- Global Name of connected RPC user.
 	userId, -- ID of connected RPC user.
 	discriminator, -- Discord's discriminator for the RPC connection.
 	lastCallback, -- Last callback called by underlying library.
 	errcode, -- Last error code that occured.
-	errorDetails, -- Details for last error code.
+	errorDetails -- Details for last error code.
 }
 
 --- Status fields sent to RPC.
--- @field send_presence Whether to send presence to Discord.
--- @field state Phrase for current user action.
--- @field details Further details on current user action.
--- @field startTimestamp Start time for this activity.
--- @field endTimestamp End time for this activity.
--- @field smallImageKey Key name for the small image.
--- @field smallImageText Hover text for the small image.
--- @field largeImageKey Key name for the large image.
--- @field largeImageText Hover text for the large image.
 M.presence = {
-	send_presence = true,
-	state = '',
-	details = '',
-	startTimestamp = os.time(),
-	endTimestamp = 0,
-	smallImageKey = 'textadept',
-	smallImageText = 'Textadept ' .. (UI == 'qt' and '(Qt)' or UI == 'gtk' and '(GTK)'
-		or '(Terminal)'),
-	largeImageKey = '',
-	largeImageText = ''
+	send_presence = true, -- Whether to send presence to Discord.
+	state = '', -- Phrase for current user action.
+	details = '', -- Further details on current user action.
+	startTimestamp = os.time(), -- Start time for this activity.
+	endTimestamp = 0, -- End time for this activity.
+	smallImageKey = 'textadept', -- Key name for the small image.
+	smallImageText = 'Textadept ' ..
+		(UI == 'qt' and '(Qt)' or UI == 'gtk' and '(GTK)' or '(Terminal)'), -- Hover text for the small image.
+	largeImageKey = '', -- Key name for the large image.
+	largeImageText = '' -- Hover text for the large image.
 }
 -- TODO: Add Party/Match/Secret and Buttons options?
 
--- LuaFormatter on
-
--- Insert entries into the buffer statusbar
+--- Insert entries into the buffer statusbar
+-- @local
 function string.bst_insert(str, ...)
 	local text, pos, value
 	local spacing = UI == 'terminal' and '  ' or '    '
@@ -306,11 +298,12 @@ function M.connect()
 	end)
 end
 
--- Allow user to 'start' RPC in their init.lua
-M.mt.__call = function()
+--- Allow user to 'start' RPC in their init.lua
+-- @lfunction mt.__call
+mt.__call = function()
 	events.connect(events.INITIALIZED, M.connect)
 end
-setmetatable(M, M.mt)
+setmetatable(M, mt)
 
 -- These are low overhead, always connect.
 events.connect(events.BUILD_OUTPUT, function() last_action = 'building ' end)
