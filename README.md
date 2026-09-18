@@ -119,7 +119,7 @@ The default value is `true`.
 
 Display 'DRPC' status in buffer_statusbar.
 
-The default value is 'true'.
+The default value is `true`.
 
 <a id="discord_rpc.stats"></a>
 ## `discord_rpc.stats`

@@ -65,7 +65,7 @@
 local M = {}
 
 ---  Display 'DRPC' status in buffer_statusbar.
--- The default value is 'true'.
+-- The default value is `true`.
 M.show_connected = true
 --- Whether to use a privacy mode that only states file types instead of their actual names.
 -- The default value is `true`.
