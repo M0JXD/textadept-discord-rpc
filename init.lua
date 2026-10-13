@@ -18,10 +18,11 @@
 -- If you don't want to connect automatically at startup, require the module without calling it,
 -- and connect using the menu option.
 --
--- #### Notes
+-- > [!IMPORTANT]
+-- > Your Discord client needs to be running before Textadept is started.
 --
--- - Your Discord client needs to be running before Textadept is started.
--- - Resetting Textadept frequently and rapidly can cause connection failures.
+-- > [!WARNING]
+-- > Resetting Textadept frequently and rapidly can cause connection failures.
 --
 -- ## About
 --
