@@ -69,7 +69,7 @@ an issue or contact me (m0jxd) via Discord with the required details.
 
 Maximum allowed attempts to connect to Discord.
 
-The default value is `20`.
+The default value is `50`.
 
 <a id="discord_rpc.close"></a>
 ## `discord_rpc.close`()
@@ -82,6 +82,12 @@ Closes down RPC connection and removes handlers.
 Connects to RPC and attaches handlers.
 
 Do not call from init.lua. Call the module instead to connect automatically at startup.
+
+<a id="discord_rpc.connected"></a>
+## `discord_rpc.connected`
+
+Current connected state.
+READ ONLY.
 
 <a id="discord_rpc.edge_names"></a>
 ## `discord_rpc.edge_names`
