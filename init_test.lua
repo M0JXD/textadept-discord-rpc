@@ -14,7 +14,7 @@ test('discord_rpc.connect should connect to a running Discord instance', functio
 end)
 if not discord_running then skip('Discord is not running') end
 
-test('UI events should not Discord status in buffer statusbar if discord_rpc.show_connected disabled', function()
+test('Discord connection status should not be shown in buffer statusbar if discord_rpc.show_connected is disabled', function()
 	local _<close> = test.mock(discord_rpc, 'show_connected', false)
 
 	if not discord_rpc.connected then discord_rpc.connect() end
