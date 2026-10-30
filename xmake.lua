@@ -32,7 +32,7 @@ target('discordrpc')
 	add_packages('DiscordRPC')
 	add_includedirs('$(scriptdir)/extern/lua/')
 	set_configdir('$(builddir)/$(plat)/$(arch)/$(mode)')
-	add_configfiles('init.lua', 'edge_names.lua', {onlycopy = true})
+	add_configfiles('init.lua', 'edge_names.lua', 'init_test.lua', {onlycopy = true})
 
 	if is_plat('windows') then
 		-- We need to embed the minimal copy of Lua
