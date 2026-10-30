@@ -72,19 +72,19 @@ M.show_connected = true
 -- The default value is `true`.
 M.private = true
 --- Maximum allowed attempts to connect to Discord.
--- The default value is `20`.
-M.attempts = 20
+-- The default value is `50`.
+M.attempts = 50
+--- Current connected state. READ ONLY.
+M.connected = false
 
 local attempts = 0 -- Current attempt number
 local last_action = 'confused at ' -- Last build/run/test action
-local is_connected = false -- Are we connected to Discord?
 local handlers = false -- Are handlers connected?
 local old_lexer = 'Untitled' -- To track what the output buffer (probably) reflects
 local mt = {}
 
 --- The base Discord RPC library object.
 -- @field rpc
-
 local lib = 'discord_rpc.discordrpc'
 if OS == 'macos' then
 	lib = lib .. 'osx'
@@ -159,9 +159,9 @@ end
 
 --- UPDATE_UI callback to show discord status in the buffer statusbar.
 local function discord_status(updated)
-	if not updated or updated & 3 == 0 then return end
+	if not updated or updated & 3 == 0 or not M.show_connected then return end
 	ui.buffer_statusbar_text = ui.buffer_statusbar_text:bst_insert('DRPC: ' ..
-		(is_connected and '☺' or '☹'))
+		(M.connected and '☺' or '☹'))
 end
 
 --- Attach handlers used in RPC.
@@ -174,7 +174,7 @@ local function attach_handlers()
 	events.connect(events.VIEW_AFTER_SWITCH, M.update)
 	events.connect(events.LEXER_LOADED, M.update)
 	events.connect(events.BUFFER_NEW, M.update)
-	if M.show_connected then events.connect(events.UPDATE_UI, discord_status) end
+	events.connect(events.UPDATE_UI, discord_status)
 	handlers = true
 end
 
@@ -188,8 +188,13 @@ local function remove_handlers()
 	events.disconnect(events.VIEW_AFTER_SWITCH, M.update)
 	events.disconnect(events.LEXER_LOADED, M.update)
 	events.disconnect(events.BUFFER_NEW, M.update)
-	if M.show_connected then events.disconnect(events.UPDATE_UI, discord_status) end
+	events.disconnect(events.UPDATE_UI, discord_status)
 	handlers = false
+end
+
+local function switch_display()
+	M.show_connected = not M.show_connected
+	ui.update()
 end
 
 --- Update details in presence table with Textadept's current status.
@@ -251,52 +256,60 @@ end
 function M.update()
 	update_presence_details()
 	M.stats = M.rpc.update(M.presence)
-
 	if M.stats.lastCallback == 0 then
 		-- Discord hasn't run any handlers yet, try sending another update
-		is_connected = false
+		M.connected = false
 		ui.statusbar_text = 'Attempting to connect to Discord...'
 		if attempts ~= M.attempts then
 			attempts = attempts + 1
-			timeout(0.4, function() M.update() end)
 		else
 			ui.statusbar_text = 'Could not connect to Discord.'
 			M.close() -- Just in case it's some weird connection issue
+			M.connected = 'fail'
+			return false
 		end
 	elseif M.stats.lastCallback == 1 then
-		if is_connected == false then
+		if M.connected == false then
 			ui.statusbar_text = 'Discord: Connected to ' .. M.stats.globalName .. '.'
-			is_connected = true
+			M.connected = true
+			return false
 		end
 	elseif M.stats.lastCallback == 2 then
 		ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
-		is_connected = false
-		-- M.close()
+		M.connected = 'fail'
+		M.close()
+		return false
 	elseif M.stats.lastCallback == 3 then
 		ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
-		is_connected = false
-		-- M.close()
+		M.connected = 'fail'
+		M.close()
+		return false
 	end
+	return true
 end
 
 --- Closes down RPC connection and removes handlers.
 function M.close()
-	is_connected = false
 	if handlers then remove_handlers() end
 	M.rpc.close()
+	-- Get the library's nullified presence details
+	M.stats = M.rpc.update(M.presence)
+	M.connected = false
 end
 
 --- Connects to RPC and attaches handlers.
 -- Do not call from init.lua. Call the module instead to connect automatically at startup.
 function M.connect()
-	M.rpc.close()
-	M.presence.startTimestamp = os.time()
-	if not handlers then attach_handlers() end
 	attempts = 0
-	timeout(0.4, function()
-		M.rpc.init()
-		M.update()
-	end)
+	M.rpc.close()
+	if not handlers then attach_handlers() end
+	M.presence.startTimestamp = os.time()
+	M.rpc.init()
+	timeout(0.3, M.update)
+	while M.connected == false do
+		ui.update()
+		if M.connected == 'fail' then break end
+	end
 end
 
 --- Allow user to 'start' RPC in their init.lua
@@ -317,6 +330,7 @@ _L['Discord RPC'] = '_Discord RPC'
 _L['Connect/Reconnect'] = '_Connect/Reconnect'
 _L['Disconnect'] = '_Disconnect'
 _L['Status'] = '_Status'
+_L['Toggle Buffer Statsbar Display'] = '_Toggle Buffer Statsbar Display'
 local discord_menu = {
 	title = _L['Discord RPC'], {_L['Connect/Reconnect'], M.connect}, {_L['Disconnect'], M.close}, {
 		_L['Status'], function()
@@ -330,11 +344,11 @@ local discord_menu = {
 				'Last Callback: ' .. M.stats.lastCallback .. '\n' ..
 				'Error Code: ' .. M.stats.errcode .. '\n' ..
 				'Error Message: ' .. M.stats.errorDetails .. '\n' ..
-				'Connected: ' .. (is_connected and 'Yes' or 'No')
+				'Connected: ' .. (M.connected and 'Yes' or 'No')
 				-- LuaFormatter on
 			}
 		end
-	}
+	}, {_L['Toggle Buffer Statsbar Display'], switch_display}
 }
 local help = textadept.menu.menubar['Help']
 table.insert(help, #help - 1, {''})
