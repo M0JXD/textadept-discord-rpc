@@ -192,9 +192,9 @@ local function remove_handlers()
 	handlers = false
 end
 
-local function switch_display()
+local function toggle_display()
 	M.show_connected = not M.show_connected
-	ui.update()
+	events.emit(events.UPDATE_UI, 3) -- Force display for buffer statusbar
 end
 
 --- Update details in presence table with Textadept's current status.
@@ -270,8 +270,9 @@ function M.update()
 		end
 	elseif M.stats.lastCallback == 1 then
 		if M.connected == false then
-			ui.statusbar_text = 'Discord: Connected to ' .. M.stats.globalName .. '.'
 			M.connected = true
+			events.emit(events.UPDATE_UI, 3) -- Force display for buffer statusbar
+			ui.statusbar_text = 'Discord: Connected to ' .. M.stats.globalName .. '.'
 			return false
 		end
 	elseif M.stats.lastCallback == 2 then
@@ -303,6 +304,7 @@ function M.connect()
 	attempts = 0
 	M.rpc.close()
 	if not handlers then attach_handlers() end
+	events.emit(events.UPDATE_UI, 3) -- Force display for buffer statusbar
 	M.presence.startTimestamp = os.time()
 	M.rpc.init()
 	timeout(0.3, M.update)
@@ -330,7 +332,7 @@ _L['Discord RPC'] = '_Discord RPC'
 _L['Connect/Reconnect'] = '_Connect/Reconnect'
 _L['Disconnect'] = '_Disconnect'
 _L['Status'] = '_Status'
-_L['Toggle Buffer Statsbar Display'] = '_Toggle Buffer Statsbar Display'
+_L['Toggle Buffer Statusbar Display'] = '_Toggle Buffer Statusbar Display'
 local discord_menu = {
 	title = _L['Discord RPC'], {_L['Connect/Reconnect'], M.connect}, {_L['Disconnect'], M.close}, {
 		_L['Status'], function()
@@ -348,7 +350,7 @@ local discord_menu = {
 				-- LuaFormatter on
 			}
 		end
-	}, {_L['Toggle Buffer Statsbar Display'], switch_display}
+	}, {_L['Toggle Buffer Statsbar Display'], toggle_display}
 }
 local help = textadept.menu.menubar['Help']
 table.insert(help, #help - 1, {''})
