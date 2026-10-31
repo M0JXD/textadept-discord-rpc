@@ -72,8 +72,8 @@ M.show_connected = true
 -- The default value is `true`.
 M.private = true
 --- Maximum allowed attempts to connect to Discord.
--- The default value is `50`.
-M.attempts = 50
+-- The default value is `30`.
+M.attempts = 30
 --- Current connected state. READ ONLY.
 M.connected = false
 
@@ -264,7 +264,6 @@ function M.update()
 			attempts = attempts + 1
 		else
 			ui.statusbar_text = 'Could not connect to Discord.'
-			M.close() -- Just in case it's some weird connection issue
 			M.connected = 'fail'
 			return false
 		end
@@ -278,12 +277,10 @@ function M.update()
 	elseif M.stats.lastCallback == 2 then
 		ui.statusbar_text = 'Discord Disconnect: ' .. M.stats.errcode .. M.stats.errorDetails
 		M.connected = 'fail'
-		M.close()
 		return false
 	elseif M.stats.lastCallback == 3 then
 		ui.statusbar_text = 'Discord Error: ' .. M.stats.errcode .. M.stats.errorDetails
 		M.connected = 'fail'
-		M.close()
 		return false
 	end
 	return true
@@ -302,7 +299,7 @@ end
 -- Do not call from init.lua. Call the module instead to connect automatically at startup.
 function M.connect()
 	attempts = 0
-	M.rpc.close()
+	M.close()
 	if not handlers then attach_handlers() end
 	events.emit(events.UPDATE_UI, 3) -- Force display for buffer statusbar
 	M.presence.startTimestamp = os.time()
@@ -310,7 +307,7 @@ function M.connect()
 	timeout(0.3, M.update)
 	while M.connected == false do
 		ui.update()
-		if M.connected == 'fail' then break end
+		if M.connected == 'fail' then M.close() break end
 	end
 end
 
