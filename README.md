@@ -69,7 +69,7 @@ an issue or contact me (m0jxd) via Discord with the required details.
 
 Maximum allowed attempts to connect to Discord.
 
-The default value is `50`.
+The default value is `30`.
 
 <a id="discord_rpc.close"></a>
 ## `discord_rpc.close`()
