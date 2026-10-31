@@ -307,7 +307,10 @@ function M.connect()
 	timeout(0.3, M.update)
 	while M.connected == false do
 		ui.update()
-		if M.connected == 'fail' then M.close() break end
+		if M.connected == 'fail' then
+			M.close()
+			break
+		end
 	end
 end
 
