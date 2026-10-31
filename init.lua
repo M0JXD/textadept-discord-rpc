@@ -350,7 +350,7 @@ local discord_menu = {
 				-- LuaFormatter on
 			}
 		end
-	}, {_L['Toggle Buffer Statsbar Display'], toggle_display}
+	}, {_L['Toggle Buffer Statusbar Display'], toggle_display}
 }
 local help = textadept.menu.menubar['Help']
 table.insert(help, #help - 1, {''})
