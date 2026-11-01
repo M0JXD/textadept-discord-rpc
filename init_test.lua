@@ -1,4 +1,4 @@
--- Copyright 2025-2026 Jamie Drinkell. See LICENSE.
+-- Copyright 2026 Jamie Drinkell. See LICENSE.
 
 local discord_rpc = require('discord_rpc')
 
